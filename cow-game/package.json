@@ -8,6 +8,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@babylonjs/core": "^4.2.2",
+    "@babylonjs/inspector": "^4.2.2",
     "preact": "^10.5.15"
   },
   "devDependencies": {
