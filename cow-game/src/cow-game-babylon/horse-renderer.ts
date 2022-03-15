@@ -9,16 +9,19 @@ import type { Engine } from "@babylonjs/core/Engines/engine";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 import HorseGltf from "./assets/Horse.gltf?url";
+import { Disposer } from "../reusable/disposable";
 
 const Speed = 3;
 
-export async function createHorseRenderer(
+export function createHorseRenderer(
   scene: Scene,
   gameController: GameController
 ) {
-  // Observe character movement and transform it into a movement
-  //  vector to be applied later (during rendering)
-  const localVelocity = new Vector3();
+  const disposers: Disposer[] = [];
+
+  var walkTarget: Vector3 | null = null;
+  const localVelocity = new Vector3(0, 0, 0);
+
   // inputs.all.add((states) => {
   //   localVelocity.set(0, 0, 0);
   //   if (states.forward) {
@@ -74,12 +77,13 @@ export async function createHorseRenderer(
         "idleAnimation",
         "walkingAnimation",
       ];
-      scene.onBeforeAnimationsObservable.add(() => {
+      const animationObserver = scene.onBeforeAnimationsObservable.add(() => {
         // Observe the current movement vector and reflect it in the target weights
         // Note: walk never goes to a weight of zero. If we set it to 0, then it
         //  stops animating, which means left and right can no longer sync to it.
         //  So we use a tiny non-zero value instead.
-        targetWeights.walkingAnimation = localVelocity.z > 0.1 ? 1 : 0.000001;
+        targetWeights.walkingAnimation =
+          localVelocity.lengthSquared() > 0.000001 ? 1 : 0.000001;
         targetWeights.idleAnimation =
           targetWeights.walkingAnimation == 0.000001 ? 1 : 0;
 
@@ -105,17 +109,30 @@ export async function createHorseRenderer(
           currentWeights["walkingAnimation"]
         );
       });
+      disposers.push(() =>
+        scene.onBeforeRenderObservable.remove(animationObserver)
+      );
 
-      // Move the player
+      // Move the horse
       const renderObservable = scene.onBeforeRenderObservable.add(() => {
         const deltaTime = scene.getEngine().getDeltaTime();
-        const delta = localVelocity
-          .normalize()
-          .scale((deltaTime * Speed) / 1000);
-        meshes[0].position.addInPlace(delta);
-        // TODO: turn towards direction
-        meshes[0].setDirection(localVelocity, Math.PI); // Not sure why we need yaw; scene RH vs mesh LH?
+
+        var diff = walkTarget && walkTarget.subtract(meshes[0].position);
+        if (diff && diff.lengthSquared() > 0.001) {
+          localVelocity.copyFrom(
+            diff.normalize().scale((deltaTime * Speed) / 1000)
+          );
+
+          meshes[0].position.addInPlace(localVelocity);
+          // TODO: turn towards direction
+          meshes[0].setDirection(localVelocity, Math.PI); // Not sure why we need yaw; scene RH vs mesh LH?
+        } else {
+          localVelocity.set(0, 0, 0);
+        }
       });
+      disposers.push(() =>
+        scene.onBeforeRenderObservable.remove(renderObservable)
+      );
 
       // // Add a dummy mesh at the mesh's midpoint, then use that as the camera target
       // const dummy = new BABYLON.Mesh("dummy", scene, meshes[0]);
@@ -125,23 +142,21 @@ export async function createHorseRenderer(
     function () {}
   );
 
-  // var walkTarget = new Vector3();
   function walkToRandomPoint() {
     if (Math.random() < 0.5) {
-      localVelocity.set(Math.random() * 50, 0, Math.random() * 50);
+      walkTarget = new Vector3(Math.random() * 10, 0, Math.random() * 10);
     } else {
-      localVelocity.setAll(0);
+      walkTarget = null;
     }
   }
 
-  // const unsubscribeEvents = gameController.subscribeEvents((ev) => {
-  //   switch (ev.event.type) {
-  //     case 'INewGameStarted': {
-  //       mesh.position.setAll(0);
-  //       break;
-  //     }
-  //   }
-  // });
+  const unsubscribeEvents = gameController.subscribeEvents((ev) => {
+    switch (ev.event.type) {
+      case "INewGameStarted": {
+        break;
+      }
+    }
+  });
 
   // function onRender(engine: Engine) {
   //   const delta = engine.getDeltaTime() / 1000;
@@ -155,7 +170,8 @@ export async function createHorseRenderer(
 
   function dispose() {
     // scene.getEngine().onBeginFrameObservable.removeCallback(onRender);
-    // unsubscribeEvents();
+    disposers.forEach((d) => d());
+    unsubscribeEvents();
   }
 
   return {

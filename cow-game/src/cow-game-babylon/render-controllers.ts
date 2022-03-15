@@ -29,7 +29,7 @@ export function createRendererController<TItem, TKey, TRenderer extends Disposab
     const key = keyGetter(item);
     const existingRenderer = renderers.get(key);
     if (!existingRenderer) {
-      throw new AppError('The item to update was not found in the array.', {
+      throw new AppError('The key was not found in the array.', {
         key,
         item,
       });
@@ -40,7 +40,7 @@ export function createRendererController<TItem, TKey, TRenderer extends Disposab
   function remove(item: TItem) {
     const key = keyGetter(item);
     if (!renderers.delete(key)) {
-      throw new AppError('The item to remove was not found in the array.', {
+      throw new AppError('The key to remove was not found in the array.', {
         key,
         item,
       });
