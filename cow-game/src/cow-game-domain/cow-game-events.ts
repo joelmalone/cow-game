@@ -1,20 +1,12 @@
-import type { IModel, IPole } from './cow-game-model';
+import { IPosition } from "./cow-game-model";
 
 export interface INewGameStarted {
-  type: 'INewGameStarted';
-  seed: string;
-  poles: IPole[];
+  type: "INewGameStarted";
 }
 
-export interface PoleBroke {
-  type: 'PoleBroke';
-  poleIndex: number;
+export interface IDestinationUpdated {
+  type: "IDestinationUpdated";
+  position: IPosition;
 }
 
-export interface TurnEnded {
-  type: 'TurnEnded';
-  oldTurn: number;
-  newTurn: number;
-}
-
-export type Events = INewGameStarted | PoleBroke | TurnEnded;
+export type Events = INewGameStarted | IDestinationUpdated;

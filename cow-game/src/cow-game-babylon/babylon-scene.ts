@@ -2,16 +2,16 @@ import type { Engine } from "@babylonjs/core/Engines/engine";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Scene } from "@babylonjs/core/scene";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
 // Side-effects required as per https://doc.babylonjs.com/divingDeeper/developWithBjs/treeShaking
 import "@babylonjs/core/helpers/sceneHelpers";
 
 import type { GameController } from "../cow-game-domain/cow-game-controller";
-import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { createHorseRenderer } from "./horse-renderer";
-import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
+import { createCameraRenderer } from "./camera-renderer";
 
 import CountryEnv from "./assets/country.env?url";
-import { createCameraRenderer } from "./camera-renderer";
 
 // TODO:
 // https://playground.babylonjs.com/#CSPJ7A#3
@@ -48,9 +48,6 @@ export async function createBabylonScene(
   );
 
   const horseRenderer = createHorseRenderer(scene, gameController);
-  setInterval(() => {
-    horseRenderer.walkToRandomPoint();
-  }, 5000);
 
   // appBus.publish({ type: 'BabylonMapSceneReady', scene });
 

@@ -1,15 +1,11 @@
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { Scene } from "@babylonjs/core/scene";
-// Side-effects required as per https://doc.babylonjs.com/divingDeeper/developWithBjs/treeShaking
-import "@babylonjs/core/Materials/standardMaterial";
-
-import type { GameController } from "../cow-game-domain/cow-game-controller";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import type { Engine } from "@babylonjs/core/Engines/engine";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
-import HorseGltf from "./assets/Horse.gltf?url";
 import { Disposer } from "../reusable/disposable";
+import type { GameController } from "../cow-game-domain/cow-game-controller";
+
+import HorseGltf from "./assets/Horse.gltf?url";
 
 const Speed = 3;
 
@@ -142,17 +138,11 @@ export function createHorseRenderer(
     function () {}
   );
 
-  function walkToRandomPoint() {
-    if (Math.random() < 0.5) {
-      walkTarget = new Vector3(Math.random() * 10, 0, Math.random() * 10);
-    } else {
-      walkTarget = null;
-    }
-  }
-
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     switch (ev.event.type) {
-      case "INewGameStarted": {
+      case "IDestinationUpdated": {
+        const { position } = ev.event;
+        walkTarget = new Vector3(position.x, 0, position.y);
         break;
       }
     }
@@ -175,7 +165,6 @@ export function createHorseRenderer(
   }
 
   return {
-    walkToRandomPoint,
     dispose,
   };
 }

@@ -1,10 +1,10 @@
-import { AppError } from './app-errors';
+import { AppError } from "./app-errors";
 
 const log = {
   debug: (...p: unknown[]) =>
-    console.debug('[command-event-model-controller]', ...p),
+    console.debug("[command-event-model-controller]", ...p),
   error: (...p: unknown[]) =>
-    console.error('[command-event-model-controller]', ...p),
+    console.error("[command-event-model-controller]", ...p),
 };
 
 export interface ChangeEvent<TModel, TEvent> {
@@ -14,7 +14,7 @@ export interface ChangeEvent<TModel, TEvent> {
 }
 
 export type ModelChangedEventListener<TModel, TEvent> = (
-  ev: ChangeEvent<TModel, TEvent>,
+  ev: ChangeEvent<TModel, TEvent>
 ) => void;
 
 export interface IModelContainer<TModel> {
@@ -24,7 +24,7 @@ export interface IModelContainer<TModel> {
 export type Executor<TModel, TEvent, TCommand> = (
   model: IModelContainer<TModel>,
   command: TCommand,
-  emitEvent: (ev: TEvent) => void,
+  emitEvent: (ev: TEvent) => void
 ) => void;
 
 export type Reducer<TModel, TEvent> = (model: TModel, ev: TEvent) => TModel;
@@ -33,7 +33,7 @@ export function createCommandEventModelController<TModel, TEvent, TCommand>(
   initialModel: TModel,
   execute: Executor<TModel, TEvent, TCommand>,
   reduce: Reducer<TModel, TEvent>,
-  onModelChanged: ModelChangedEventListener<TModel, TEvent>,
+  publishEvent: ModelChangedEventListener<TModel, TEvent>
 ) {
   var currentModel = initialModel;
   var version = 0;
@@ -44,7 +44,7 @@ export function createCommandEventModelController<TModel, TEvent, TCommand>(
   function enqueueCommand(command: TCommand) {
     if (commandQueue.length > 100) {
       throw new AppError(
-        'There are too many commands in the command queue; are we doomed?',
+        "There are too many commands in the command queue; are we doomed?"
       );
     }
 
@@ -55,9 +55,9 @@ export function createCommandEventModelController<TModel, TEvent, TCommand>(
         const [poppedCounter, poppedCommand] = commandQueue[0];
 
         const poppedCommandType =
-          (poppedCommand as any).name || '(unknown type)';
+          (poppedCommand as any).name || "(unknown type)";
         log.debug(
-          `Executing command #${poppedCounter} of type ${poppedCommandType}.`,
+          `Executing command #${poppedCounter} of type ${poppedCommandType}.`
         );
 
         try {
@@ -72,13 +72,15 @@ export function createCommandEventModelController<TModel, TEvent, TCommand>(
 
           function onEventEmitted(event: TEvent) {
             const newModel = reduce(tentativeModel, event);
-            tentativeModel = newModel;
-            tentativeVersion++;
+            if(!Object.is(newModel, tentativeModel)){
+              tentativeModel = newModel;
+              tentativeVersion++;
+            }
 
             capturedChanges.push({
               event,
               version: tentativeVersion,
-              model: newModel,
+              model: tentativeModel,
             });
           }
 
@@ -90,31 +92,33 @@ export function createCommandEventModelController<TModel, TEvent, TCommand>(
 
             for (const capturedChange of capturedChanges) {
               const eventType =
-                (capturedChange.event as any).type || '(unknown type)';
+                (capturedChange.event as any).type || "(unknown type)";
               log.debug(
-                `Emitting change event #${capturedChange.version} of type ${eventType}.`,
-                capturedChange,
+                `Emitting an event with model version #${capturedChange.version} and event type ${eventType}.`,
+                capturedChange
               );
 
               try {
-                onModelChanged(capturedChange);
+                publishEvent(capturedChange);
               } catch (err) {
                 log.error(
-                  'Exception during onModelChanged() callback will be ignored.',
-                  err,
+                  "Exception during publishEvent() callback will be ignored.",
+                  err
                 );
               }
             }
+          } else {
+            log.debug("The command did not emit any events.");
           }
         } catch (err) {
           log.error(
-            'Error executing command.',
+            "Error executing command.",
             {
               poppedCounter,
               poppedCommand,
               currentModel,
             },
-            err,
+            err
           );
         }
 

@@ -11,6 +11,8 @@ import { reduce } from './cow-game-reduce';
 export type GameController = ReturnType<typeof createGameController>;
 
 export function createGameController() {
+  const asyncEventQueue = createAsyncMessageBus<ChangeEvent<IModel, Events>>();
+
   function onModelChanged(ev: {
     event: Events;
     version: number;
@@ -18,8 +20,6 @@ export function createGameController() {
   }) {
     asyncEventQueue.enqueueMessage(ev);
   }
-
-  const asyncEventQueue = createAsyncMessageBus<ChangeEvent<IModel, Events>>();
 
   const controller = createCommandEventModelController<IModel, Events, Command>(
     {} as IModel,

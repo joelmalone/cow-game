@@ -1,16 +1,12 @@
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { Scene } from "@babylonjs/core/scene";
-import { Camera } from "@babylonjs/core/Cameras/camera";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import type { Engine } from "@babylonjs/core/Engines/engine";
+import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
-// Side-effects required as per https://doc.babylonjs.com/divingDeeper/developWithBjs/treeShaking
-import "@babylonjs/core/Materials/standardMaterial";
 
 import { TopDownCameraInput } from "../reusable/babylon/top-down-camera-input";
 import { PanCameraInput } from "../reusable/babylon/pan-camera-input";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
+import { tapOnMap } from "../cow-game-domain/cow-game-commands";
+import { GroundPlane } from "./babylon-helpers";
 
 export function createCameraRenderer(
   canvas: HTMLCanvasElement,
@@ -39,6 +35,21 @@ export function createCameraRenderer(
 
   // Doesn't work, needs fix fix
   camera.attachControl(canvas, true);
+
+  scene.onPointerDown = function castRay() {
+    const ray = scene.createPickingRay(
+      scene.pointerX,
+      scene.pointerY,
+      Matrix.Identity(),
+      camera
+    );
+
+    const t = ray.intersectsPlane(GroundPlane);
+    const hit = t && ray.origin.add(ray.direction.scale(t));
+    if (hit) {
+      gameController.enqueueCommand(tapOnMap({ x: hit.x, y: hit.z }));
+    }
+  };
 
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     switch (ev.event.type) {
