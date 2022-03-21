@@ -12,6 +12,7 @@ import { createHorseRenderer } from "./horse-renderer";
 import { createCameraRenderer } from "./camera-renderer";
 
 import CountryEnv from "./assets/country.env?url";
+import { createEnvironmentRenderer } from "./environment-renderer";
 
 // TODO:
 // https://playground.babylonjs.com/#CSPJ7A#3
@@ -47,6 +48,8 @@ export async function createBabylonScene(
     arenaSize
   );
 
+  const environmentRenderer = createEnvironmentRenderer(scene, gameController);
+
   const horseRenderer = createHorseRenderer(scene, gameController);
 
   // appBus.publish({ type: 'BabylonMapSceneReady', scene });
@@ -55,6 +58,7 @@ export async function createBabylonScene(
     // appBus.publish({ type: 'BabylonMapSceneDisposing', scene });
 
     horseRenderer.dispose();
+    environmentRenderer.dispose();
     cameraRenderer.dispose();
     scene.dispose();
   }

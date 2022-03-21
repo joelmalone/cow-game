@@ -16,7 +16,7 @@ export function createCameraRenderer(
 ) {
   const cameraAngle = new Vector3(1, -1, 1);
   const focus = new Vector3(0.5, 0, 0.5).scale(arenaSize);
-  const cameraDistance = 20;
+  const cameraDistance = 100;
 
   // Parameters : name, position, scene
   var camera = new UniversalCamera(
