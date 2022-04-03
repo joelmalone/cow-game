@@ -6,7 +6,7 @@ I spammed [Orteil's Video game generator](https://orteil.dashnet.org/gamegen) un
 
 >A sim game where you copy-paste horses until you own everything.
 
-I challenge you to play it let me know if I hit the mark!
+I challenge you to play it and let me know if I hit the mark!
 
 ## Attribution
 
@@ -38,8 +38,8 @@ To build the project:
 
 ### Missing modules
 
-Sometimes Vite will fail to load a module that it has not yet seen; this is because it processed modules on-demand and sometimes fails to serve it up while doing so.
+Sometimes Vite will fail to load a module that it has not yet seen. This is because it processes modules on-demand, and sometimes fails to serve it up while doing so.
 
 **The solution**: reload the web page.
 
-By the time you reload, Vite should have finished processing the module and it will be served correctly this time.
+By the time you reload, Vite should have finished processing the module; it will be served correctly this time.

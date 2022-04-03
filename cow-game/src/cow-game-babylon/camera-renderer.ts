@@ -15,8 +15,8 @@ export function createCameraRenderer(
   arenaSize: number
 ) {
   const cameraAngle = new Vector3(1, -1, 1);
-  const focus = new Vector3(0.5, 0, 0.5).scale(arenaSize);
-  const cameraDistance = 100;
+  const focus = new Vector3(0, 0, 0);
+  const cameraDistance = 40;
 
   // Parameters : name, position, scene
   var camera = new UniversalCamera(
@@ -25,7 +25,7 @@ export function createCameraRenderer(
     scene
   );
   camera.setTarget(focus);
-  camera.fov = 0.2;
+  camera.fov = 0.1;
 
   // https://doc.babylonjs.com/divingDeeper/cameras/customizingCameraInputs
   camera.inputs.clear();

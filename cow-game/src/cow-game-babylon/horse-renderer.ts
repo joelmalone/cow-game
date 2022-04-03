@@ -7,7 +7,7 @@ import type { GameController } from "../cow-game-domain/cow-game-controller";
 
 import HorseGltf from "./assets/Horse.gltf?url";
 
-const Speed = 3;
+const Speed = 1;
 
 export function createHorseRenderer(
   scene: Scene,
@@ -46,6 +46,9 @@ export function createHorseRenderer(
       lights
     ) => {
       // shadowGenerator.addShadowCaster(meshes[0], true);
+
+      // The horse is 5.5 units horizontally from nose to butt, so scale it down to 1
+      meshes[0].scaling.setAll(1 / 5.5);
 
       // Get the animations and begin playing them, but with 0 weight
       const idleAnimation = animationGroups.find((a) => a.name === "Idle")!;
@@ -121,7 +124,7 @@ export function createHorseRenderer(
 
           meshes[0].position.addInPlace(localVelocity);
           // TODO: turn towards direction
-          meshes[0].setDirection(localVelocity, Math.PI); // Not sure why we need yaw; scene RH vs mesh LH?
+          meshes[0].setDirection(localVelocity); // Not sure why we need yaw; scene RH vs mesh LH?
         } else {
           localVelocity.set(0, 0, 0);
         }
