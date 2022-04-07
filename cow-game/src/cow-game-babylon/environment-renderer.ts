@@ -15,7 +15,10 @@ import House2Gltf from "./assets/House2.glb?url";
 import House3Gltf from "./assets/House3.glb?url";
 import House4Gltf from "./assets/House4.glb?url";
 import House5Gltf from "./assets/House5.glb?url";
+import HouseTexture1 from "./assets/HouseTexture1.png?url";
+import HouseTexture2 from "./assets/HouseTexture2.png?url";
 import HouseTexture3 from "./assets/HouseTexture3.png?url";
+import HouseTexture4 from "./assets/HouseTexture4.png?url";
 import StreetStraightGltf from "./assets/Street_Straight.glb?url";
 
 export function createEnvironmentRenderer(
@@ -37,29 +40,36 @@ export function createEnvironmentRenderer(
 
     console.debug(`${meshes.length} house meshes loaded.`, meshes);
 
-    const texture = await new Promise<Texture>((resolve, reject) => {
-      const t = new Texture(
-        HouseTexture3,
-        scene,
-        false,
-        false,
-        undefined,
-        () => {
-          resolve(t);
-        },
-        (message, ex) => {
-          console.error(`Error loading texture. Message: ${message}`, ex);
-          reject(ex);
+    var houseMaterials = await Promise.all(
+      [HouseTexture1, HouseTexture2, HouseTexture3, HouseTexture4].map(
+        async (url) => {
+          const texture = await new Promise<Texture>((resolve, reject) => {
+            const t = new Texture(
+              url,
+              scene,
+              false,
+              false,
+              undefined,
+              () => {
+                resolve(t);
+              },
+              (message, ex) => {
+                console.error(`Error loading texture. Message: ${message}`, ex);
+                reject(ex);
+              }
+            );
+          });
+          const material = new StandardMaterial("house material", scene);
+          material.diffuseTexture = texture;
+          // meshes.forEach((mesh) => {
+          //   mesh.getChildMeshes().forEach((m) => {
+          //     m.material = houseMaterial;
+          //   });
+          // });
+          return material;
         }
-      );
-    });
-    var houseMaterial = new StandardMaterial("house material", scene);
-    houseMaterial.diffuseTexture = texture;
-    meshes.forEach((mesh) => {
-      mesh.getChildMeshes().forEach((m) => {
-        m.material = houseMaterial;
-      });
-    });
+      )
+    );
 
     // TODO: remove the default shinyness
     // const material = mesh.material;
@@ -81,6 +91,14 @@ export function createEnvironmentRenderer(
         clone.addRotation(0, Math.PI, 0);
         // clone.scaling.setAll(10);
 
+        const material =
+          houseMaterials[Math.trunc(Math.random() * houseMaterials.length)];
+        meshes.forEach((mesh) => {
+          mesh.getChildMeshes().forEach((m) => {
+            m.material = material;
+          });
+        });
+
         disposers.push(() => clone.dispose());
       }
     }
@@ -94,6 +112,14 @@ export function createEnvironmentRenderer(
         clone.position.set(x * 4, 0, -4);
         // clone.addRotation(0, Math.PI, 0);
         // clone.scaling.setAll(10);
+
+        const material =
+          houseMaterials[Math.trunc(Math.random() * houseMaterials.length)];
+        meshes.forEach((mesh) => {
+          mesh.getChildMeshes().forEach((m) => {
+            m.material = material;
+          });
+        });
 
         disposers.push(() => clone.dispose());
       }
