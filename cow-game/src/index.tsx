@@ -25,6 +25,14 @@ async function createBabylonEngine(canvas: HTMLCanvasElement) {
     debug: () => (disposableScene.scene as any).debugLayer.show(),
   };
 
+  // Can press ` to open the Babylon inspector
+  canvas.addEventListener('keyup', ev=>{
+    debugger
+    if(ev.key === '`'){
+      (disposableScene.scene as any).debugLayer.show()
+    }
+  })
+
   function dispose() {
     disposableScene.dispose();
     engine.dispose();

@@ -6,6 +6,7 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
 import { Disposer } from "../reusable/disposable";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
@@ -31,14 +32,17 @@ export function createEnvironmentRenderer(
     return SceneLoader.ImportMeshAsync("", url, "", scene);
   }
 
+  console.log('Loading house stuff...')
+  
+  // TODO: loading all 5 at once seems to hit a deadlock; use asset manager instead?
   Promise.all(
     [HouseGltf, House2Gltf, House3Gltf, House4Gltf, House5Gltf].map(
       loadMeshAsync
     )
   ).then(async (resultses) => {
-    const meshes = resultses.map((r) => r.meshes[0]);
+    const houseMeshes = resultses.map((r) => r.meshes[0]);
 
-    console.debug(`${meshes.length} house meshes loaded.`, meshes);
+    console.debug(`Loaded ${houseMeshes.length} house meshes.`, houseMeshes);
 
     var houseMaterials = await Promise.all(
       [HouseTexture1, HouseTexture2, HouseTexture3, HouseTexture4].map(
@@ -61,15 +65,12 @@ export function createEnvironmentRenderer(
           });
           const material = new StandardMaterial("house material", scene);
           material.diffuseTexture = texture;
-          // meshes.forEach((mesh) => {
-          //   mesh.getChildMeshes().forEach((m) => {
-          //     m.material = houseMaterial;
-          //   });
-          // });
           return material;
         }
       )
     );
+
+    console.log("Loaded house materials.", houseMaterials);
 
     // TODO: remove the default shinyness
     // const material = mesh.material;
@@ -81,10 +82,12 @@ export function createEnvironmentRenderer(
     //  https://www.html5gamedevs.com/topic/37664-load-mesh-without-rendering-it-then-adding-it-to-the-world-many-times/
     // For now, just clone.
 
+    const houseClonesParent = new TransformNode("Houses", scene);
+
     // North side of the street
     for (var x = -5; x < 5; x++) {
-      var mesh = meshes[Math.trunc(Math.random() * meshes.length)];
-      const clone = mesh.clone(`House North clone ${x}`, null);
+      var mesh = houseMeshes[Math.trunc(Math.random() * houseMeshes.length)];
+      const clone = mesh.clone(`House North clone ${x}`, houseClonesParent);
 
       if (clone) {
         clone.position.set(x * 4, 0, 4);
@@ -93,7 +96,7 @@ export function createEnvironmentRenderer(
 
         const material =
           houseMaterials[Math.trunc(Math.random() * houseMaterials.length)];
-        meshes.forEach((mesh) => {
+        houseMeshes.forEach((mesh) => {
           mesh.getChildMeshes().forEach((m) => {
             m.material = material;
           });
@@ -105,8 +108,8 @@ export function createEnvironmentRenderer(
 
     // South side of the street
     for (var x = -5; x < 5; x++) {
-      var mesh = meshes[Math.trunc(Math.random() * meshes.length)];
-      const clone = mesh.clone(`House South clone ${x}`, null);
+      var mesh = houseMeshes[Math.trunc(Math.random() * houseMeshes.length)];
+      const clone = mesh.clone(`House South clone ${x}`, houseClonesParent);
 
       if (clone) {
         clone.position.set(x * 4, 0, -4);
@@ -115,7 +118,7 @@ export function createEnvironmentRenderer(
 
         const material =
           houseMaterials[Math.trunc(Math.random() * houseMaterials.length)];
-        meshes.forEach((mesh) => {
+        houseMeshes.forEach((mesh) => {
           mesh.getChildMeshes().forEach((m) => {
             m.material = material;
           });
@@ -125,93 +128,37 @@ export function createEnvironmentRenderer(
       }
     }
 
-    meshes.forEach((m) => m.dispose());
+    houseMeshes.forEach((m) => m.dispose());
   });
 
-  // SceneLoader.ImportMesh(
-  //   "",
-  //   HouseGltf,
-  //   "",
-  //   scene,
-  //   (
-  //     meshes,
-  //     particleSystems,
-  //     skeletons,
-  //     animationGroups,
-  //     transformNodes,
-  //     geometries,
-  //     lights
-  //   ) => {
-  //     const mesh = meshes[0];
+  console.log("Loading street pieces...");
 
-  //     // TODO: remove the default shinyness
-  //     // const material = mesh.material;
-  //     // if (material instanceof PBRMaterial) {
-  //     //   material.metallicF0Factor = 0;
-  //     // }
+  const streetClonesParent = new TransformNode("Street pieces");
 
-  //     // TODO: clone and merge many houses. See here:
-  //     //  https://www.html5gamedevs.com/topic/37664-load-mesh-without-rendering-it-then-adding-it-to-the-world-many-times/
-  //     // For now, just clone.
+  SceneLoader.ImportMesh("", StreetStraightGltf, "", scene, (meshes) => {
+    const mesh = meshes[0];
+    mesh.scaling.setAll(2);
 
-  //     // North side of the street
-  //     for (var x = -5; x < 5; x++) {
-  //       const clone = mesh.clone(`House North clone ${x}`, null);
+    for (var y = -0; y <= 0; y++) {
+      for (var x = -10; x < 10; x++) {
+        const clone = mesh.clone(`Street clone ${x} ${y}`, streetClonesParent);
 
-  //       if (clone) {
-  //         clone.position.set(x * 20, 0, 20);
-  //         // clone.addRotation(0, 0, 0);
-  //         clone.scaling.setAll(10);
+        if (clone) {
+          clone.position.set(x * 4, -0.3, y * 4);
 
-  //         disposers.push(() => clone.dispose());
-  //       }
-  //     }
-
-  //     // South side of the street
-  //     for (var x = -5; x < 5; x++) {
-  //       const clone = mesh.clone(`House South clone ${x}`, null);
-
-  //       if (clone) {
-  //         clone.position.set(x * 20, 0, -20);
-  //         clone.addRotation(0, Math.PI, 0);
-  //         clone.scaling.setAll(10);
-
-  //         disposers.push(() => clone.dispose());
-  //       }
-  //     }
-
-  //     mesh.dispose();
-  //   },
-  //   function () {}
-  // );
-
-  SceneLoader.ImportMesh(
-    "",
-    StreetStraightGltf,
-    "",
-    scene,
-    (meshes) => {
-      const mesh = meshes[0];
-      mesh.scaling.setAll(2);
-
-      for (var y = -0; y <= 0; y++) {
-        for (var x = -10; x < 10; x++) {
-          const clone = mesh.clone(`Street clone ${x} ${y}`, null);
-
-          if (clone) {
-            clone.position.set(x * 4, -0.3, y * 4);
-
-            disposers.push(() => clone.dispose());
-          }
+          disposers.push(() => clone.dispose());
         }
       }
-      // mesh.position.set(0, -3, 0)
-      // mesh.scaling.setAll(15);
+    }
+    // mesh.position.set(0, -3, 0)
+    // mesh.scaling.setAll(15);
 
-      mesh.dispose();
-    },
-    function () {}
-  );
+    mesh.dispose();
+
+    console.log("Street pieces loaded.");
+  });
+
+  const grassClonesParent = new TransformNode("Grass pieces");
 
   var grassMaterial = new StandardMaterial("grass material", scene);
   grassMaterial.diffuseColor = new Color3(0.25, 0.75, 0.25);
@@ -224,7 +171,7 @@ export function createEnvironmentRenderer(
     }
 
     for (var x = -10; x < 10; x++) {
-      const clone = grassTile.clone(`Grass clone ${x} ${y}`, null);
+      const clone = grassTile.clone(`Grass clone ${x} ${y}`, grassClonesParent);
 
       if (clone) {
         clone.position.set(x * 4, -0.5, y * 4);
