@@ -11,7 +11,6 @@ import type { GameController } from "../cow-game-domain/cow-game-controller";
 import { createHorseRenderer } from "./horse-renderer";
 import { createCameraRenderer } from "./camera-renderer";
 
-import CountryEnv from "./assets/country.env?url";
 import { createEnvironmentRenderer } from "./environment-renderer";
 
 // TODO:
@@ -24,21 +23,11 @@ export async function createBabylonScene(
 ) {
   const scene = new Scene(engine);
 
-  scene.environmentTexture = CubeTexture.CreateFromPrefilteredData(
-    CountryEnv,
-    scene
-  );
-  scene.createDefaultSkybox(scene.environmentTexture, false, 1000, 0, false);
-
   engine.runRenderLoop(function () {
     scene.render();
   });
 
-  // const light = new HemisphericLight('light', new Vector3(1, 1, -1), scene);
-  var light = new HemisphericLight("hemiLight", new Vector3(-1, 1, -1), scene);
-  light.diffuse = new Color3(1, 1, 1);
-  light.specular = new Color3(0, 1, 0);
-  light.groundColor = new Color3(0, 1, 0);
+  var light = new HemisphericLight("hemiLight", new Vector3(-2, 2, -1), scene);
 
   const arenaSize = 10;
   const cameraRenderer = createCameraRenderer(
