@@ -12,6 +12,9 @@ import { AppError } from "../reusable/app-errors";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scalar } from "@babylonjs/core/Maths/math.scalar";
+import { Node } from "@babylonjs/core/node";
+import { IPosition } from "../cow-game-domain/cow-game-model";
+import { positionToVector3 } from "./babylon-helpers";
 
 export function createRigidHorseRenderer(
   scene: Scene,
@@ -20,7 +23,7 @@ export function createRigidHorseRenderer(
   const disposers: Disposer[] = [];
 
   // Prepare a promise of the horse mesh; we'll clone this later
-  const meshPromise = new Promise<AbstractMesh>((resolve) => {
+  const horseMeshPromise = new Promise<AbstractMesh>((resolve) => {
     SceneLoader.ImportMesh(
       "",
       HorseGltf,
@@ -47,62 +50,73 @@ export function createRigidHorseRenderer(
     );
   });
 
-  setTimeout(() => {
-    setInterval(() => {
-      meshPromise.then((horseTemplate) => {
-        // Can't successfully clone the tamplate mesh if it's disabled, so
-        // temporarily enable it. No idea how to do this better... asset
-        // manager maybe?
-        horseTemplate.setEnabled(true);
-        const meshClone = horseTemplate.clone("rigid horse", null);
-        horseTemplate.setEnabled(false);
-        if (!meshClone) {
-          throw new AppError("Unable to clone the mesh.");
-        }
+  const cloneParent = new TransformNode(createRigidHorseRenderer.name);
 
-        // Get the horse mesh's bounds (including descendant meshes)
-        const bounds = meshClone.getHierarchyBoundingVectors();
-        const length = bounds.max.z - bounds.min.z;
-        const width = bounds.max.x - bounds.min.x;
-        const height = bounds.max.y - bounds.min.y;
+  async function spawnHorse(position: IPosition) {
+    const horseTemplate = await horseMeshPromise;
 
-        const box = MeshBuilder.CreateBox(
-          "Horse Body",
-          { size: length * 0.8, width: width * 0.8, height: height * 0.8 },
-          scene
-        );
-        box.isVisible = false;
-        box.position.set(0, 3, 0);
-        box.physicsImpostor = new PhysicsImpostor(
-          box,
-          PhysicsImpostor.BoxImpostor,
-          { mass: 1, restitution: 0.1 },
-          scene
-        );
-        // Add some spin
-        box.physicsImpostor.applyImpulse(
-          new Vector3(Math.random(), 0, Math.random()),
-          box.getAbsolutePosition().addInPlaceFromFloats(0, 0.5, 0)
-        );
+    function cloneHorseMesh(parent: Node) {
+      // Can't successfully clone the template mesh if it's disabled, so
+      // temporarily enable it. No idea how to do this better... asset
+      // manager maybe?
+      horseTemplate.setEnabled(true);
+      const clone = horseTemplate.clone("rigid horse", parent);
+      horseTemplate.setEnabled(false);
 
-        // Attach the mesh to the root box
-        meshClone.setParent(box);
-        meshClone.position.set(0, -height * 0.5, 0);
-      });
-    }, 2500);
-  }, 5000);
+      if (!clone) {
+        throw new AppError("Unable to clone the mesh.");
+      }
 
-  // const unsubscribeEvents = gameController.subscribeEvents((ev) => {
-  //   switch (ev.event.type) {
-  //     case "IDestinationUpdated": {
-  //       const { position } = ev.event;
-  //       walkTarget = new Vector3(position.x, 0, position.y);
-  //       break;
-  //     }
-  //   }
-  // });
+      return clone;
+    }
+
+    // Get the horse mesh's bounds (including descendant meshes)
+    const bounds = horseTemplate.getHierarchyBoundingVectors();
+    const length = bounds.max.z - bounds.min.z;
+    const width = bounds.max.x - bounds.min.x;
+    const height = bounds.max.y - bounds.min.y;
+
+    const horseRoot = MeshBuilder.CreateBox(
+      "Horse Body",
+      { size: length * 0.8, width: width * 0.8, height: height * 0.8 },
+      scene
+    );
+    horseRoot.isVisible = false;
+    horseRoot.position = positionToVector3(position).addInPlaceFromFloats(
+      0,
+      height *1.5,
+      0
+    );
+    horseRoot.physicsImpostor = new PhysicsImpostor(
+      horseRoot,
+      PhysicsImpostor.BoxImpostor,
+      { mass: 1, restitution: 0.1 },
+      scene
+    );
+    // Add some poing
+    horseRoot.physicsImpostor.applyImpulse(
+      new Vector3(Math.random(), 5, Math.random()),
+      horseRoot.getAbsolutePosition().addInPlaceFromFloats(0, 0.5, 0)
+    );
+
+    const meshClone = cloneHorseMesh(horseRoot);
+    meshClone.position.set(0, -height * 0.5, 0);
+
+    horseRoot.setParent(cloneParent);
+  }
+
+  const unsubscribeEvents = gameController.subscribeEvents((ev) => {
+    switch (ev.event.type) {
+      case "IHorseSpawned": {
+        const { spawnPosition } = ev.event;
+        spawnHorse(spawnPosition);
+        break;
+      }
+    }
+  });
 
   function dispose() {
+    unsubscribeEvents();
     disposers.forEach((d) => d());
   }
 

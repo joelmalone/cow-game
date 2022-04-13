@@ -27,7 +27,6 @@ async function createBabylonEngine(canvas: HTMLCanvasElement) {
 
   // Can press ` to open the Babylon inspector
   canvas.addEventListener('keyup', ev=>{
-    debugger
     if(ev.key === '`'){
       (disposableScene.scene as any).debugLayer.show()
     }

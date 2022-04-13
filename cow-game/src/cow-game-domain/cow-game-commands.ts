@@ -1,5 +1,5 @@
 import type { Events } from "./cow-game-events";
-import type { IModel, IPosition } from "./cow-game-model";
+import type { IModel, IPosition, Tappable } from "./cow-game-model";
 
 export type Command = (
   modelContainer: { readonly model: IModel },
@@ -14,8 +14,17 @@ export function startNewGame(seed: string): Command {
   };
 }
 
-export function tapOnMap(position: IPosition): Command {
-  return ({ model }, emitEvent) => {
-    emitEvent({ type: "IDestinationUpdated", position });
+export function tap(tappable: Tappable, position: IPosition): Command {
+  return function tap({ model }, emitEvent) {
+    switch (tappable) {
+      case "player": {
+        emitEvent({ type: "IHorseSpawned", spawnPosition: position });
+        break;
+      }
+      case "terrain": {
+        emitEvent({ type: "IDestinationUpdated", position });
+        break;
+      }
+    }
   };
 }

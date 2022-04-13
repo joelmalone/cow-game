@@ -5,3 +5,5 @@ export interface IPosition {
 
 export interface IModel {
 }
+
+export type Tappable = 'player' | 'terrain';

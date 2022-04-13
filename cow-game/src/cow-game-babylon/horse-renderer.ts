@@ -6,6 +6,9 @@ import { Disposer } from "../reusable/disposable";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
 
 import HorseGltf from "./assets/Horse.gltf?url";
+import { setMetadata } from "./babylon-helpers";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { PhysicsImpostor } from "@babylonjs/core/Physics/physicsImpostor";
 
 const Speed = 1;
 
@@ -45,10 +48,34 @@ export function createHorseRenderer(
       geometries,
       lights
     ) => {
-      // shadowGenerator.addShadowCaster(meshes[0], true);
-
-      // The horse is 5.5 units horizontally from nose to butt, so scale it down to 1
+      // The horse mesh is 5.5 units horizontally from nose to butt, so scale it down to 1
       meshes[0].scaling.setAll(1 / 5.5);
+
+      // Get the horse mesh's bounds (including descendant meshes)
+      const bounds = meshes[0].getHierarchyBoundingVectors();
+      const length = bounds.max.z - bounds.min.z;
+      const width = bounds.max.x - bounds.min.x;
+      const height = bounds.max.y - bounds.min.y;
+
+      // Create a tappable mesh; we'l use this as the root
+      const horseRoot = MeshBuilder.CreateBox(
+        "Player horse",
+        { size: length * 0.8, width: width * 0.8, height: height * 0.8 },
+        scene
+      );
+      horseRoot.position.set(0, height * 0.5, 0);
+      horseRoot.isVisible = false;
+      // Tag the horse to be picked up by the "tap" subsystem
+      setMetadata(horseRoot, { tappable: "player" });
+
+      horseRoot.physicsImpostor = new PhysicsImpostor(
+        horseRoot,
+        PhysicsImpostor.BoxImpostor,
+        { mass: 0, restitution: 0.1 },
+        scene
+      );
+
+      // shadowGenerator.addShadowCaster(meshes[0], true);
 
       // Get the animations and begin playing them, but with 0 weight
       const idleAnimation = animationGroups.find((a) => a.name === "Idle")!;
@@ -116,15 +143,19 @@ export function createHorseRenderer(
       const renderObservable = scene.onBeforeRenderObservable.add(() => {
         const deltaTime = scene.getEngine().getDeltaTime();
 
-        var diff = walkTarget && walkTarget.subtract(meshes[0].position);
+        var diff = walkTarget && walkTarget.subtract(horseRoot.position);
+        if (diff) {
+          diff.y = 0;
+        }
         if (diff && diff.lengthSquared() > 0.001) {
           localVelocity.copyFrom(
             diff.normalize().scale((deltaTime * Speed) / 1000)
           );
 
-          meshes[0].position.addInPlace(localVelocity);
-          // TODO: turn towards direction
-          meshes[0].setDirection(localVelocity); // Not sure why we need yaw; scene RH vs mesh LH?
+          horseRoot.position.addInPlace(localVelocity);
+          // TODO: when we're parented, we need to use -ve direction; find out why
+          horseRoot.setDirection(localVelocity.scale(-1));
+          // TODO: gradually turn towards direction
         } else {
           localVelocity.set(0, 0, 0);
         }
@@ -133,12 +164,9 @@ export function createHorseRenderer(
         scene.onBeforeRenderObservable.remove(renderObservable)
       );
 
-      // // Add a dummy mesh at the mesh's midpoint, then use that as the camera target
-      // const dummy = new BABYLON.Mesh("dummy", scene, meshes[0]);
-      // dummy.position.addInPlaceFromFloats(0, 1, 0);
-      // followCamera.lockedTarget = dummy;
-    },
-    function () {}
+      meshes[0].setParent(horseRoot);
+      meshes[0].position.set(0, -height * 0.5, 0);
+    }
   );
 
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
