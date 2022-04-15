@@ -12,12 +12,11 @@ import { Tappable } from "../cow-game-domain/cow-game-model";
 export function createCameraRenderer(
   canvas: HTMLCanvasElement,
   scene: Scene,
-  gameController: GameController,
-  arenaSize: number
+  gameController: GameController
 ) {
   const cameraAngle = new Vector3(1, -1, 1);
   const focus = new Vector3(0, 0, 0);
-  const cameraDistance = 40;
+  const cameraDistance = 100;
 
   // Parameters : name, position, scene
   var camera = new UniversalCamera(
@@ -44,7 +43,6 @@ export function createCameraRenderer(
   scene.onPointerDown = function (ev, pickInfo, type) {
     const { pickedPoint, pickedMesh } = pickInfo;
     const tappable = pickedPoint && getMetadata(pickedMesh)?.tappable;
-    console.log({ pickedPoint, pickedMesh, tappable });
     if (tappable) {
       gameController.enqueueCommand(
         tap(tappable, vector3ToPosition(pickedPoint))

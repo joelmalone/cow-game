@@ -1,8 +1,10 @@
 import { AppError } from "./app-errors";
 
+const Verbose = false;
+
 const log = {
   debug: (...p: unknown[]) =>
-    console.debug("[command-event-model-controller]", ...p),
+  Verbose && console.debug("[command-event-model-controller]", ...p),
   error: (...p: unknown[]) =>
     console.error("[command-event-model-controller]", ...p),
 };

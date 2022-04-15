@@ -28,3 +28,22 @@ export function tap(tappable: Tappable, position: IPosition): Command {
     }
   };
 }
+
+export function spawnNpc(): Command {
+  return function spawnNpc({ model }, emitEvent) {
+    const spawnAddress = {
+      x: Math.random() < 0.5 ? -5 : 5,
+      y: 0,
+    };
+    const houseAddress = {
+      x: Math.trunc(Math.random() * 10 - 5),
+      y: Math.random() < 0.5 ? -1 : 1,
+    };
+    const route = [
+      spawnAddress,
+      { x: houseAddress.x, y: spawnAddress.y },
+      houseAddress,
+    ];
+    emitEvent({ type: "INpcSpawned", route });
+  };
+}

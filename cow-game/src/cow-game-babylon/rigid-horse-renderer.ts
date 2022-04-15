@@ -82,11 +82,7 @@ export function createRigidHorseRenderer(
       scene
     );
     horseRoot.isVisible = false;
-    horseRoot.position = positionToVector3(position).addInPlaceFromFloats(
-      0,
-      height *1.5,
-      0
-    );
+    horseRoot.position = positionToVector3(position,height *1.5);
     horseRoot.physicsImpostor = new PhysicsImpostor(
       horseRoot,
       PhysicsImpostor.BoxImpostor,

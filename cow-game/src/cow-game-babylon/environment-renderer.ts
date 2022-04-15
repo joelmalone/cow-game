@@ -1,4 +1,7 @@
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import {
+  ISceneLoaderAsyncResult,
+  SceneLoader,
+} from "@babylonjs/core/Loading/sceneLoader";
 import type { Scene } from "@babylonjs/core/scene";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
@@ -21,6 +24,9 @@ import HouseTexture2 from "./assets/HouseTexture2.png?url";
 import HouseTexture3 from "./assets/HouseTexture3.png?url";
 import HouseTexture4 from "./assets/HouseTexture4.png?url";
 import StreetStraightGltf from "./assets/Street_Straight.glb?url";
+import { delay } from "../reusable/promise-helpers";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { positionToVector3, WorldScale } from "./babylon-helpers";
 
 export function createEnvironmentRenderer(
   scene: Scene,
@@ -28,46 +34,51 @@ export function createEnvironmentRenderer(
 ) {
   const disposers: Disposer[] = [];
 
-  function loadMeshAsync(url: string) {
-    return SceneLoader.ImportMeshAsync("", url, "", scene);
+  async function loadMeshAsync(url: string) {
+    const result = await SceneLoader.ImportMeshAsync("", url, "", scene);
+    return result.meshes[0];
   }
 
-  console.log('Loading house stuff...')
-  
-  // TODO: loading all 5 at once seems to hit a deadlock; use asset manager instead?
-  Promise.all(
-    [HouseGltf, House2Gltf, House3Gltf, House4Gltf, House5Gltf].map(
-      loadMeshAsync
-    )
-  ).then(async (resultses) => {
-    const houseMeshes = resultses.map((r) => r.meshes[0]);
+  console.log("Loading house stuff...");
+
+  delay(0).then(async () => {
+    const houseMeshes: AbstractMesh[] = [];
+    for (const url of [
+      HouseGltf,
+      // House2Gltf,
+      // House3Gltf,
+      // House4Gltf,
+      // House5Gltf,
+    ]) {
+      const mesh = await loadMeshAsync(url);
+      houseMeshes.push(mesh);
+    }
 
     console.debug(`Loaded ${houseMeshes.length} house meshes.`, houseMeshes);
 
     var houseMaterials = await Promise.all(
-      [HouseTexture1, HouseTexture2, HouseTexture3, HouseTexture4].map(
-        async (url) => {
-          const texture = await new Promise<Texture>((resolve, reject) => {
-            const t = new Texture(
-              url,
-              scene,
-              false,
-              false,
-              undefined,
-              () => {
-                resolve(t);
-              },
-              (message, ex) => {
-                console.error(`Error loading texture. Message: ${message}`, ex);
-                reject(ex);
-              }
-            );
-          });
-          const material = new StandardMaterial("house material", scene);
-          material.diffuseTexture = texture;
-          return material;
-        }
-      )
+      // [HouseTexture1, HouseTexture2, HouseTexture3, HouseTexture4].map(
+      [HouseTexture1].map(async (url) => {
+        const texture = await new Promise<Texture>((resolve, reject) => {
+          const t = new Texture(
+            url,
+            scene,
+            false,
+            false,
+            undefined,
+            () => {
+              resolve(t);
+            },
+            (message, ex) => {
+              console.error(`Error loading texture. Message: ${message}`, ex);
+              reject(ex);
+            }
+          );
+        });
+        const material = new StandardMaterial("house material", scene);
+        material.diffuseTexture = texture;
+        return material;
+      })
     );
 
     console.log("Loaded house materials.", houseMaterials);
@@ -90,7 +101,7 @@ export function createEnvironmentRenderer(
       const clone = mesh.clone(`House North clone ${x}`, houseClonesParent);
 
       if (clone) {
-        clone.position.set(x * 4, 0, 4);
+        clone.position = positionToVector3({ x, y: 1 });
         clone.addRotation(0, Math.PI, 0);
         // clone.scaling.setAll(10);
 
@@ -112,7 +123,7 @@ export function createEnvironmentRenderer(
       const clone = mesh.clone(`House South clone ${x}`, houseClonesParent);
 
       if (clone) {
-        clone.position.set(x * 4, 0, -4);
+        clone.position = positionToVector3({ x, y: -1 });
         // clone.addRotation(0, Math.PI, 0);
         // clone.scaling.setAll(10);
 
@@ -137,14 +148,15 @@ export function createEnvironmentRenderer(
 
   SceneLoader.ImportMesh("", StreetStraightGltf, "", scene, (meshes) => {
     const mesh = meshes[0];
-    mesh.scaling.setAll(2);
+    // The tiles are 2x2, so scalew them up to 4x4
+    mesh.scaling.setAll(WorldScale / 2);
 
     for (var y = -0; y <= 0; y++) {
       for (var x = -10; x < 10; x++) {
         const clone = mesh.clone(`Street clone ${x} ${y}`, streetClonesParent);
 
         if (clone) {
-          clone.position.set(x * 4, -0.3, y * 4);
+          clone.position = positionToVector3({ x, y }, -0.3);
 
           disposers.push(() => clone.dispose());
         }
@@ -174,7 +186,7 @@ export function createEnvironmentRenderer(
       const clone = grassTile.clone(`Grass clone ${x} ${y}`, grassClonesParent);
 
       if (clone) {
-        clone.position.set(x * 4, -0.5, y * 4);
+        clone.position = positionToVector3({ x, y }, -0.5);
         // clone.scaling.setAll(2);
 
         disposers.push(() => clone.dispose());

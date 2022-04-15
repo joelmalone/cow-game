@@ -14,4 +14,13 @@ export interface IHorseSpawned {
   spawnPosition: IPosition;
 }
 
-export type Events = INewGameStarted | IDestinationUpdated | IHorseSpawned;
+export interface INpcSpawned {
+  type: "INpcSpawned";
+  route: IPosition[];
+}
+
+export type Events =
+  | INewGameStarted
+  | IDestinationUpdated
+  | IHorseSpawned
+  | INpcSpawned;
