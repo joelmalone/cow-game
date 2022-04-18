@@ -341,6 +341,11 @@
     estree-walker "^2.0.1"
     picomatch "^2.2.2"
 
+"@types/cannon@^0.1.8":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@types/cannon/-/cannon-0.1.8.tgz#fce4bc22a245d644747707c51cb3d3025d3f6163"
+  integrity sha512-aabgPL9ho1Qov3mMnBJCTG+vTWhFrhRi/5INwsZCPhf3BwabRWz53ryffCDzRSlV4T0f4eQS0OQo5Y/RCZsngQ==
+
 ansi-styles@^3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-3.2.1.tgz#41fbb20243e50b12be0f04b8dedbf07520ce841d"
@@ -373,6 +378,11 @@ caniuse-lite@^1.0.30001313:
   version "1.0.30001314"
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001314.tgz#65c7f9fb7e4594fca0a333bec1d8939662377596"
   integrity sha512-0zaSO+TnCHtHJIbpLroX7nsD+vYuOVjl3uzFbJO1wMVbuveJA0RK2WcQA9ZUIOiO0/ArMiMgHJLxfEZhQiC0kw==
+
+cannon@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/cannon/-/cannon-0.6.2.tgz#1e7bc72dd5841982f3c104c2bc578bfa4fb1c572"
+  integrity sha1-HnvHLdWEGYLzwQTCvFeL+k+xxXI=
 
 chalk@^2.0.0:
   version "2.4.2"
