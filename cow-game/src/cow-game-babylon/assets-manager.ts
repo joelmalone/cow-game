@@ -12,6 +12,7 @@ export const MeshAssets = {
   house4: (await import("./assets/House4.glb?url")).default,
   house5: (await import("./assets/House5.glb?url")).default,
   streetStraight: (await import("./assets/Street_Straight.glb?url")).default,
+  horse: (await import("./assets/Horse.gltf?url")).default,
 };
 
 export const TextureAssets = {

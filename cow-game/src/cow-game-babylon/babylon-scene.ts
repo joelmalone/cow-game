@@ -60,7 +60,7 @@ export async function createBabylonScene(
     scene
   );
 
-  createRigidHorseRenderer(scene, gameController);
+  createRigidHorseRenderer(scene, gameController, assetsManager);
 
   var light = new HemisphericLight("hemiLight", new Vector3(-2, 2, -1), scene);
 
