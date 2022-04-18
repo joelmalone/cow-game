@@ -33,8 +33,8 @@ export function createCameraRenderer(
   camera.inputs.add(new PanCameraInput());
   camera.inputs.addMouseWheel();
 
-  // Doesn't work, needs fix fix
-  camera.attachControl(canvas, true);
+  // Attach the camera to the canvas; this prevents "scroll bounce" when we mouse wheel
+  camera.attachControl(canvas);
 
   // Only tap on things with a metadata.tappable value
   scene.pointerDownPredicate = (abstractMesh) =>
