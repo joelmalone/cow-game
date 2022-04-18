@@ -31,12 +31,13 @@ export function tap(tappable: Tappable, position: IPosition): Command {
 
 export function spawnNpc(): Command {
   return function spawnNpc({ model }, emitEvent) {
+    const spawnWest = Math.random() < 0.5;
     const spawnAddress = {
-      x: Math.random() < 0.5 ? -5 : 5,
+      x: spawnWest ? -5 : 5,
       y: 0,
     };
     const houseAddress = {
-      x: Math.trunc(Math.random() * 10 - 5),
+      x: Math.trunc(Math.random() * 5) * (spawnWest ? 1 : -1),
       y: Math.random() < 0.5 ? -1 : 1,
     };
     const route = [
