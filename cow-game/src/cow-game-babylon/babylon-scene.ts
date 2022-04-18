@@ -23,6 +23,7 @@ import { PhysicsImpostor } from "@babylonjs/core/Physics/physicsImpostor";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { createRigidHorseRenderer } from "./rigid-horse-renderer";
 import { createNpcRenderer } from "./npc-renderer";
+import { createCowGameAssetsManager } from "./assets-manager";
 
 // TODO:
 // https://playground.babylonjs.com/#CSPJ7A#3
@@ -40,6 +41,8 @@ export async function createBabylonScene(
 
   // https://doc.babylonjs.com/divingDeeper/physics/usingPhysicsEngine
   scene.enablePhysics(null, new CannonJSPlugin());
+
+  const assetsManager = createCowGameAssetsManager(scene);
 
   // Create an invisible ground, but it will receive shadows
   const ground = MeshBuilder.CreateGround(
@@ -67,7 +70,7 @@ export async function createBabylonScene(
     gameController
   );
 
-  const environmentRenderer = createEnvironmentRenderer(scene, gameController);
+  const environmentRenderer = createEnvironmentRenderer(scene, gameController, assetsManager);
 
   const horseRenderer = createHorseRenderer(scene, gameController);
 

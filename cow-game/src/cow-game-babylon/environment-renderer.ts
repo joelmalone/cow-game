@@ -14,23 +14,15 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Disposer } from "../reusable/disposable";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
 
-import HouseGltf from "./assets/House.glb?url";
-import House2Gltf from "./assets/House2.glb?url";
-import House3Gltf from "./assets/House3.glb?url";
-import House4Gltf from "./assets/House4.glb?url";
-import House5Gltf from "./assets/House5.glb?url";
-import HouseTexture1 from "./assets/HouseTexture1.png?url";
-import HouseTexture2 from "./assets/HouseTexture2.png?url";
-import HouseTexture3 from "./assets/HouseTexture3.png?url";
-import HouseTexture4 from "./assets/HouseTexture4.png?url";
-import StreetStraightGltf from "./assets/Street_Straight.glb?url";
 import { delay } from "../reusable/promise-helpers";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { positionToVector3, WorldScale } from "./babylon-helpers";
+import { CowGameAssetsManager } from "./assets-manager";
 
 export function createEnvironmentRenderer(
   scene: Scene,
-  gameController: GameController
+  gameController: GameController,
+  assetsManager: CowGameAssetsManager
 ) {
   const disposers: Disposer[] = [];
 
@@ -41,45 +33,20 @@ export function createEnvironmentRenderer(
 
   console.log("Loading house stuff...");
 
-  delay(0).then(async () => {
-    const houseMeshes: AbstractMesh[] = [];
-    for (const url of [
-      HouseGltf,
-      // House2Gltf,
-      // House3Gltf,
-      // House4Gltf,
-      // House5Gltf,
-    ]) {
-      const mesh = await loadMeshAsync(url);
-      houseMeshes.push(mesh);
-    }
-
+  Promise.all(
+    assetsManager.loadMeshes("house1", "house2", "house3", "house4", "house5")
+  ).then(async (houseMeshes) => {
     console.debug(`Loaded ${houseMeshes.length} house meshes.`, houseMeshes);
 
-    var houseMaterials = await Promise.all(
-      // [HouseTexture1, HouseTexture2, HouseTexture3, HouseTexture4].map(
-      [HouseTexture1].map(async (url) => {
-        const texture = await new Promise<Texture>((resolve, reject) => {
-          const t = new Texture(
-            url,
-            scene,
-            false,
-            false,
-            undefined,
-            () => {
-              resolve(t);
-            },
-            (message, ex) => {
-              console.error(`Error loading texture. Message: ${message}`, ex);
-              reject(ex);
-            }
-          );
-        });
-        const material = new StandardMaterial("house material", scene);
-        material.diffuseTexture = texture;
-        return material;
-      })
+    var houseTextures = await Promise.all(
+      assetsManager.loadTextures("house1", "house2", "house3", "house4")
     );
+
+    const houseMaterials = houseTextures.map((texture) => {
+      const material = new StandardMaterial(texture.name, scene);
+      material.diffuseTexture = texture;
+      return material;
+    });
 
     console.log("Loaded house materials.", houseMaterials);
 
@@ -146,8 +113,7 @@ export function createEnvironmentRenderer(
 
   const streetClonesParent = new TransformNode("Street pieces");
 
-  SceneLoader.ImportMesh("", StreetStraightGltf, "", scene, (meshes) => {
-    const mesh = meshes[0];
+  assetsManager.loadMesh("streetStraight").then((mesh) => {
     // The tiles are 2x2, so scalew them up to 4x4
     mesh.scaling.setAll(WorldScale / 2);
 
