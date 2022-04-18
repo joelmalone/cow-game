@@ -22,6 +22,10 @@ import { delay } from "../reusable/promise-helpers";
 import { createRendererController } from "./render-controllers";
 import { INpcSpawned } from "../cow-game-domain/cow-game-events";
 
+const CUBE_SIZE = .25
+const CUBE_MASS = 40
+const CUBE_IMPULSE_LENGTH = 50
+
 export function createNpcRenderer(
   scene: Scene,
   gameController: GameController,
@@ -111,7 +115,7 @@ function createWanderingCube(
   const mesh = MeshBuilder.CreateBox(
     "cube",
     {
-      size: 0.25,
+      size: CUBE_SIZE,
       faceColors: [
         color.toColor4(),
         color.toColor4(),
@@ -130,13 +134,13 @@ function createWanderingCube(
   mesh.physicsImpostor = new PhysicsImpostor(
     mesh,
     PhysicsImpostor.BoxImpostor,
-    { mass: 4, restitution: 0.5 },
+    { mass: CUBE_MASS, restitution: 0.5 },
     scene
   );
 
   function move(direction: Vector3) {
     direction.y = 0;
-    const impulse = direction.normalize().scale(5);
+    const impulse = direction.normalize().scale(CUBE_IMPULSE_LENGTH);
     mesh.applyImpulse(
       impulse,
       mesh.getAbsolutePosition().addInPlaceFromFloats(0, 0.25, 0)
