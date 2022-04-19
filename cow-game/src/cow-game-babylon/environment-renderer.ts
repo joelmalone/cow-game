@@ -35,18 +35,22 @@ export function createEnvironmentRenderer(
 
   Promise.all(
     assetsManager.loadMeshes("house1", "house2", "house3", "house4", "house5")
-  ).then(async (houseMeshes) => {
-    console.debug(`Loaded ${houseMeshes.length} house meshes.`, houseMeshes);
+  ).then(async (houseAssets) => {
+    console.debug(`Loaded ${houseAssets.length} house assets.`, houseAssets);
 
-    var houseTextures = await Promise.all(
-      assetsManager.loadTextures("house1", "house2", "house3", "house4")
+    const houseTemplates = houseAssets.map(
+      ({ loadedMeshes }) => loadedMeshes[0]
     );
 
-    const houseMaterials = houseTextures.map((texture) => {
-      const material = new StandardMaterial(texture.name, scene);
-      material.diffuseTexture = texture;
-      return material;
-    });
+    var houseMaterials = await Promise.all(
+      assetsManager.loadTextures("house1", "house2", "house3", "house4")
+    ).then((assets) =>
+      assets.map((texture) => {
+        const material = new StandardMaterial(texture.name, scene);
+        material.diffuseTexture = texture;
+        return material;
+      })
+    );
 
     console.log("Loaded house materials.", houseMaterials);
 
@@ -64,7 +68,9 @@ export function createEnvironmentRenderer(
 
     // North side of the street
     for (var x = -5; x < 5; x++) {
-      var mesh = houseMeshes[Math.trunc(Math.random() * houseMeshes.length)];
+      var mesh =
+        houseTemplates[Math.trunc(Math.random() * houseTemplates.length)];
+      // TODO: instantiate from the container (instead of cloning)
       const clone = mesh.clone(`House North clone ${x}`, houseClonesParent);
 
       if (clone) {
@@ -74,7 +80,7 @@ export function createEnvironmentRenderer(
 
         const material =
           houseMaterials[Math.trunc(Math.random() * houseMaterials.length)];
-        houseMeshes.forEach((mesh) => {
+        houseTemplates.forEach((mesh) => {
           mesh.getChildMeshes().forEach((m) => {
             m.material = material;
           });
@@ -86,7 +92,9 @@ export function createEnvironmentRenderer(
 
     // South side of the street
     for (var x = -5; x < 5; x++) {
-      var mesh = houseMeshes[Math.trunc(Math.random() * houseMeshes.length)];
+      var mesh =
+        houseTemplates[Math.trunc(Math.random() * houseTemplates.length)];
+      // TODO: instantiate from the container (instead of cloning)
       const clone = mesh.clone(`House South clone ${x}`, houseClonesParent);
 
       if (clone) {
@@ -96,7 +104,7 @@ export function createEnvironmentRenderer(
 
         const material =
           houseMaterials[Math.trunc(Math.random() * houseMaterials.length)];
-        houseMeshes.forEach((mesh) => {
+        houseTemplates.forEach((mesh) => {
           mesh.getChildMeshes().forEach((m) => {
             m.material = material;
           });
@@ -106,19 +114,20 @@ export function createEnvironmentRenderer(
       }
     }
 
-    houseMeshes.forEach((m) => m.dispose());
+    houseTemplates.forEach((m) => m.dispose());
   });
 
   console.log("Loading street pieces...");
 
   const streetClonesParent = new TransformNode("Street pieces");
 
-  assetsManager.loadMesh("streetStraight").then((mesh) => {
+  assetsManager.loadMesh("streetStraight").then(({ loadedMeshes: [mesh] }) => {
     // The tiles are 2x2, so scalew them up to 4x4
     mesh.scaling.setAll(WorldScale / 2);
 
     for (var y = -0; y <= 0; y++) {
       for (var x = -10; x < 10; x++) {
+        // TODO: instantiate from the container (instead of cloning)
         const clone = mesh.clone(`Street clone ${x} ${y}`, streetClonesParent);
 
         if (clone) {
@@ -149,6 +158,7 @@ export function createEnvironmentRenderer(
     }
 
     for (var x = -10; x < 10; x++) {
+      // TODO: instantiate from the container (instead of cloning)
       const clone = grassTile.clone(`Grass clone ${x} ${y}`, grassClonesParent);
 
       if (clone) {

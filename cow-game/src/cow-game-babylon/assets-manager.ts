@@ -1,6 +1,13 @@
+import { AssetContainer } from "@babylonjs/core/assetContainer";
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
-import { AssetsManager } from "@babylonjs/core/Misc/assetsManager";
+import {
+  AbstractAssetTask,
+  AssetsManager,
+  ContainerAssetTask,
+  MeshAssetTask,
+} from "@babylonjs/core/Misc/assetsManager";
 import { Scene } from "@babylonjs/core/scene";
 
 import { AppError } from "../reusable/app-errors";
@@ -15,6 +22,10 @@ export const MeshAssets = {
   horse: (await import("./assets/Horse.gltf?url")).default,
 };
 
+// TODO: needing to expose this probably means we should handle post-processing in the asset manager
+/** The scale to apply to the loaded horse mesh. */
+export const HORSE_SCALE = 1 / 5.5;
+
 export const TextureAssets = {
   house1: (await import("./assets/HouseTexture1.png?url")).default,
   house2: (await import("./assets/HouseTexture2.png?url")).default,
@@ -26,6 +37,22 @@ export type CowGameAssetsManager = ReturnType<
   typeof createCowGameAssetsManager
 >;
 
+export type LoadMeshResult = Pick<
+  ContainerAssetTask,
+  | "loadedContainer"
+  | "loadedMeshes"
+  | "loadedParticleSystems"
+  | "loadedSkeletons"
+  | "loadedAnimationGroups"
+>;
+
+// TODO: look into loading assets into an AssetContainer and then providing a
+// method to instantiate them into a scene:
+// https://doc.babylonjs.com/divingDeeper/importers/assetContainers
+
+// TODO: implement a custom container-based task as per
+// https://playground.babylonjs.com/#ZQPDEF#18
+
 export function createCowGameAssetsManager(scene: Scene) {
   const start = Date.now();
   var disposed = false;
@@ -33,12 +60,17 @@ export function createCowGameAssetsManager(scene: Scene) {
 
   console.log("Full assets list.", { MeshAssets, TextureAssets });
 
-  const meshes = new Map<keyof typeof MeshAssets, Promise<AbstractMesh>>();
+  const meshes = new Map<keyof typeof MeshAssets, Promise<LoadMeshResult>>();
   for (const key in MeshAssets) {
     const url = MeshAssets[key as keyof typeof MeshAssets];
 
-    const promise = new Promise<AbstractMesh>((resolve, reject) => {
-      const task = assetsManager.addMeshTask(`Load mesh ${key}`, null, url, "");
+    const promise = new Promise<LoadMeshResult>((resolve, reject) => {
+      const task = assetsManager.addContainerTask(
+        `Load mesh ${key}`,
+        null,
+        url,
+        ""
+      );
       task.onError = (t, err) => {
         if (!disposed) {
           reject(err);
@@ -46,7 +78,7 @@ export function createCowGameAssetsManager(scene: Scene) {
       };
       task.onSuccess = (t) => {
         if (!disposed) {
-          resolve(t.loadedMeshes[0]);
+          resolve(t);
         }
       };
     });
@@ -56,7 +88,7 @@ export function createCowGameAssetsManager(scene: Scene) {
 
   function loadMeshes(
     ...assets: (keyof typeof MeshAssets)[]
-  ): Promise<AbstractMesh>[] {
+  ): Promise<LoadMeshResult>[] {
     return assets.map((asset) => {
       const result = meshes.get(asset);
       if (!result) {

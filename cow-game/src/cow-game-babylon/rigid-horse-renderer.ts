@@ -14,7 +14,7 @@ import { Scalar } from "@babylonjs/core/Maths/math.scalar";
 import { Node } from "@babylonjs/core/node";
 import { IPosition } from "../cow-game-domain/cow-game-model";
 import { positionToVector3 } from "./babylon-helpers";
-import { CowGameAssetsManager } from "./assets-manager";
+import { CowGameAssetsManager, HORSE_SCALE } from "./assets-manager";
 
 export function createRigidHorseRenderer(
   scene: Scene,
@@ -24,37 +24,26 @@ export function createRigidHorseRenderer(
   const disposers: Disposer[] = [];
 
   // Prepare a promise of the horse mesh; we'll clone this later
-  const horseMeshPromise = assetsManager.loadMesh("horse").then((mesh) => {
-    // The horse is 5.5 units horizontally from nose to butt, so scale it down to 1
-    mesh.scaling.setAll(1 / 5.5);
-
-    mesh.setEnabled(false);
-
-    return mesh;
-  });
+  const horseTemplatePromise = assetsManager
+    .loadMesh("horse")
+    .then(({ loadedContainer }) => {
+      return loadedContainer;
+    });
 
   const cloneParent = new TransformNode(createRigidHorseRenderer.name);
 
   async function spawnHorse(position: IPosition) {
-    const horseTemplate = await horseMeshPromise;
+    const horseTemplate = await horseTemplatePromise;
 
-    function cloneHorseMesh(parent: Node) {
-      // Can't successfully clone the template mesh if it's disabled, so
-      // temporarily enable it. No idea how to do this better... asset
-      // manager maybe?
-      horseTemplate.setEnabled(true);
-      const clone = horseTemplate.clone("rigid horse", parent);
-      horseTemplate.setEnabled(false);
+    const instantiated = horseTemplate.instantiateModelsToScene();
 
-      if (!clone) {
-        throw new AppError("Unable to clone the mesh.");
-      }
-
-      return clone;
-    }
+    const meshClone = instantiated.rootNodes[0];
+    meshClone.name = "Rigid horse";
+    // The horse mesh is 5.5 units horizontally from nose to butt, so scale it down to 1
+    meshClone.scaling.setAll(HORSE_SCALE);
 
     // Get the horse mesh's bounds (including descendant meshes)
-    const bounds = horseTemplate.getHierarchyBoundingVectors();
+    const bounds = meshClone.getHierarchyBoundingVectors();
     const length = bounds.max.z - bounds.min.z;
     const width = bounds.max.x - bounds.min.x;
     const height = bounds.max.y - bounds.min.y;
@@ -78,10 +67,12 @@ export function createRigidHorseRenderer(
       horseRoot.getAbsolutePosition().addInPlaceFromFloats(0, 0.5, 0)
     );
 
-    const meshClone = cloneHorseMesh(horseRoot);
+    // Attach the visible mesh to the root
+    meshClone.parent = horseRoot;
     meshClone.position.set(0, -height * 0.5, 0);
 
-    horseRoot.setParent(cloneParent);
+    // Attach the root to the clone bucket
+    horseRoot.parent = cloneParent;
   }
 
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {

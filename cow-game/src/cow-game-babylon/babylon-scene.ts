@@ -72,7 +72,7 @@ export async function createBabylonScene(
 
   const environmentRenderer = createEnvironmentRenderer(scene, gameController, assetsManager);
 
-  const horseRenderer = createHorseRenderer(scene, gameController);
+  const horseRenderer = createHorseRenderer(scene, gameController, assetsManager);
 
   const npcRenderer = createNpcRenderer(scene, gameController, ground);
 

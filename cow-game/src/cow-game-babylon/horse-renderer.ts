@@ -1,58 +1,40 @@
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { Scene } from "@babylonjs/core/scene";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { PhysicsImpostor } from "@babylonjs/core/Physics/physicsImpostor";
 
 import { Disposer } from "../reusable/disposable";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
-
-import HorseGltf from "./assets/Horse.gltf?url";
 import { setMetadata } from "./babylon-helpers";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { PhysicsImpostor } from "@babylonjs/core/Physics/physicsImpostor";
+import { CowGameAssetsManager, HORSE_SCALE } from "./assets-manager";
+import { AppError } from "../reusable/app-errors";
 
 const Speed = 1;
 
 export function createHorseRenderer(
   scene: Scene,
-  gameController: GameController
+  gameController: GameController,
+  assetsManager: CowGameAssetsManager
 ) {
   const disposers: Disposer[] = [];
 
   var walkTarget: Vector3 | null = null;
   const localVelocity = new Vector3(0, 0, 0);
 
-  // inputs.all.add((states) => {
-  //   localVelocity.set(0, 0, 0);
-  //   if (states.forward) {
-  //     localVelocity.addInPlaceFromFloats(0, 0, 1);
-  //   }
-  //   if (states.left) {
-  //     localVelocity.addInPlaceFromFloats(-1, 0, 0);
-  //   }
-  //   if (states.right) {
-  //     localVelocity.addInPlaceFromFloats(1, 0, 0);
-  //   }
-  // });
-
-  SceneLoader.ImportMesh(
-    "",
-    HorseGltf,
-    "",
-    scene,
-    (
-      meshes,
-      particleSystems,
-      skeletons,
-      animationGroups,
-      transformNodes,
-      geometries,
-      lights
-    ) => {
+  assetsManager
+    .loadMesh("horse")
+    .then(({ loadedContainer }) => {
+      const instantiated = loadedContainer.instantiateModelsToScene()
+      const horseMesh = instantiated.rootNodes[0];
+      horseMesh.name = "Player horse";
+      if(!horseMesh){
+        throw new AppError('Failed to clone a horse.')
+      }
       // The horse mesh is 5.5 units horizontally from nose to butt, so scale it down to 1
-      meshes[0].scaling.setAll(1 / 5.5);
+      horseMesh.scaling.setAll(HORSE_SCALE);
 
       // Get the horse mesh's bounds (including descendant meshes)
-      const bounds = meshes[0].getHierarchyBoundingVectors();
+      const bounds = horseMesh.getHierarchyBoundingVectors();
       const length = bounds.max.z - bounds.min.z;
       const width = bounds.max.x - bounds.min.x;
       const height = bounds.max.y - bounds.min.y;
@@ -75,18 +57,17 @@ export function createHorseRenderer(
         scene
       );
 
-      // shadowGenerator.addShadowCaster(meshes[0], true);
-
       // Get the animations and begin playing them, but with 0 weight
-      const idleAnimation = animationGroups.find((a) => a.name === "Idle")!;
-      const walkingAnimation = animationGroups.find((a) => a.name === "Walk")!;
+      const idleAnimation = instantiated.animationGroups.find(
+        (a) => a.name === "Idle"
+      )!;
+      const walkingAnimation = instantiated.animationGroups.find(
+        (a) => a.name === "Walk"
+      )!;
       [idleAnimation, walkingAnimation].forEach((a) => {
         a.setWeightForAllAnimatables(0);
         a.start(true);
       });
-      // [leftAnimation, rightAnimation].forEach((a) => {
-      //   a.syncAllAnimationsWith(walkingAnimation.animatables[0]);
-      // });
 
       // We want to transition smoothly between animations, so keep track of that
       // TODO: I think animationtarget has this built-in, look it up
@@ -164,10 +145,9 @@ export function createHorseRenderer(
         scene.onBeforeRenderObservable.remove(renderObservable)
       );
 
-      meshes[0].setParent(horseRoot);
-      meshes[0].position.set(0, -height * 0.5, 0);
-    }
-  );
+      horseMesh.setParent(horseRoot);
+      horseMesh.position.set(0, -height * 0.5, 0);
+    });
 
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     switch (ev.event.type) {
@@ -179,18 +159,7 @@ export function createHorseRenderer(
     }
   });
 
-  // function onRender(engine: Engine) {
-  //   const delta = engine.getDeltaTime() / 1000;
-  //   const diff = walkTarget
-  //     .subtract(mesh.position)
-  //     .normalize()
-  //     .scale(Speed * delta);
-  //   mesh.position.addInPlace(diff);
-  // }
-  // scene.getEngine().onBeginFrameObservable.add(onRender);
-
   function dispose() {
-    // scene.getEngine().onBeginFrameObservable.removeCallback(onRender);
     disposers.forEach((d) => d());
     unsubscribeEvents();
   }
