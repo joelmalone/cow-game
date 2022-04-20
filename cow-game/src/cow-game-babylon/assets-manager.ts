@@ -26,6 +26,9 @@ export const MeshAssets = {
 /** The scale to apply to the loaded horse mesh. */
 export const HORSE_SCALE = 1 / 5.5;
 
+/** The scale to apply to the loaded house meshes. */
+export const HOUSE_SCALE = 3 / 2;
+
 export const TextureAssets = {
   house1: (await import("./assets/HouseTexture1.png?url")).default,
   house2: (await import("./assets/HouseTexture2.png?url")).default,

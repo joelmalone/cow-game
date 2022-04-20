@@ -17,7 +17,7 @@ import type { GameController } from "../cow-game-domain/cow-game-controller";
 import { delay } from "../reusable/promise-helpers";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { positionToVector3, WorldScale } from "./babylon-helpers";
-import { CowGameAssetsManager } from "./assets-manager";
+import { CowGameAssetsManager, HOUSE_SCALE } from "./assets-manager";
 
 export function createEnvironmentRenderer(
   scene: Scene,
@@ -38,10 +38,12 @@ export function createEnvironmentRenderer(
   ).then(async (houseAssets) => {
     console.debug(`Loaded ${houseAssets.length} house assets.`, houseAssets);
 
-    const houseTemplates = houseAssets.map(
-      ({ loadedMeshes }) => loadedMeshes[0]
-    );
+    // Set the scale of the house assets so each house is ~3x3
+    for (const houseAsset of houseAssets) {
+      houseAsset.loadedMeshes[0].scaling.setAll(HOUSE_SCALE);
+    }
 
+    // Load all house textures and turn them into materials
     var houseMaterials = await Promise.all(
       assetsManager.loadTextures("house1", "house2", "house3", "house4")
     ).then((assets) =>
@@ -54,67 +56,60 @@ export function createEnvironmentRenderer(
 
     console.log("Loaded house materials.", houseMaterials);
 
-    // TODO: remove the default shinyness
-    // const material = mesh.material;
-    // if (material instanceof PBRMaterial) {
-    //   material.metallicF0Factor = 0;
-    // }
-
-    // TODO: clone and merge many houses. See here:
+    // TODO: look into some optimisations for the environment meshes
+    // General discussion here:
     //  https://www.html5gamedevs.com/topic/37664-load-mesh-without-rendering-it-then-adding-it-to-the-world-many-times/
-    // For now, just clone.
+    // Mesh merging:
+    //  https://doc.babylonjs.com/divingDeeper/mesh/mergeMeshes
+    // Instancing:
+    //  https://doc.babylonjs.com/divingDeeper/mesh/copies/instances
+    // Thin instancing:
+    //  https://doc.babylonjs.com/divingDeeper/mesh/copies/thinInstances
+
+    // TODO: spawn the houses according to the game model
 
     const houseClonesParent = new TransformNode("Houses", scene);
 
     // North side of the street
     for (var x = -5; x < 5; x++) {
-      var mesh =
-        houseTemplates[Math.trunc(Math.random() * houseTemplates.length)];
+      var houseAsset =
+        houseAssets[Math.trunc(Math.random() * houseAssets.length)];
       // TODO: instantiate from the container (instead of cloning)
-      const clone = mesh.clone(`House North clone ${x}`, houseClonesParent);
+      const clone =
+        houseAsset.loadedContainer.instantiateModelsToScene().rootNodes[0];
+      clone.name = `House North clone ${x}`;
+      clone.parent = houseClonesParent;
 
-      if (clone) {
-        clone.position = positionToVector3({ x, y: 1 });
-        clone.addRotation(0, Math.PI, 0);
-        // clone.scaling.setAll(10);
+      clone.position = positionToVector3({ x, y: 1 });
+      // clone.addRotation(0, Math.PI, 0);
 
-        const material =
-          houseMaterials[Math.trunc(Math.random() * houseMaterials.length)];
-        houseTemplates.forEach((mesh) => {
-          mesh.getChildMeshes().forEach((m) => {
-            m.material = material;
-          });
-        });
+      const material =
+        houseMaterials[Math.trunc(Math.random() * houseMaterials.length)];
+      clone.getChildMeshes().forEach((mesh) => (mesh.material = material));
 
-        disposers.push(() => clone.dispose());
-      }
+      disposers.push(() => clone.dispose());
     }
 
     // South side of the street
     for (var x = -5; x < 5; x++) {
-      var mesh =
-        houseTemplates[Math.trunc(Math.random() * houseTemplates.length)];
+      var houseAsset =
+        houseAssets[Math.trunc(Math.random() * houseAssets.length)];
       // TODO: instantiate from the container (instead of cloning)
-      const clone = mesh.clone(`House South clone ${x}`, houseClonesParent);
+      const clone =
+        houseAsset.loadedContainer.instantiateModelsToScene().rootNodes[0];
+      clone.name = `House South clone ${x}`;
+      clone.parent = houseClonesParent;
 
-      if (clone) {
-        clone.position = positionToVector3({ x, y: -1 });
-        // clone.addRotation(0, Math.PI, 0);
-        // clone.scaling.setAll(10);
+      clone.position = positionToVector3({ x, y: -1 });
+      clone.addRotation(0, Math.PI, 0);
+      // clone.scaling.setAll(10);
 
-        const material =
-          houseMaterials[Math.trunc(Math.random() * houseMaterials.length)];
-        houseTemplates.forEach((mesh) => {
-          mesh.getChildMeshes().forEach((m) => {
-            m.material = material;
-          });
-        });
+      const material =
+        houseMaterials[Math.trunc(Math.random() * houseMaterials.length)];
+      clone.getChildMeshes().forEach((mesh) => (mesh.material = material));
 
-        disposers.push(() => clone.dispose());
-      }
+      disposers.push(() => clone.dispose());
     }
-
-    houseTemplates.forEach((m) => m.dispose());
   });
 
   console.log("Loading street pieces...");
