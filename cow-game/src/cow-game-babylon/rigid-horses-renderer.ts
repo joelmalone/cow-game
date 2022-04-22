@@ -1,17 +1,11 @@
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { Scene } from "@babylonjs/core/scene";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { PhysicsImpostor } from "@babylonjs/core/Physics/physicsImpostor";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 
 import { Disposer } from "../reusable/disposable";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
-
-import { PhysicsImpostor } from "@babylonjs/core/Physics/physicsImpostor";
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
-import { AppError } from "../reusable/app-errors";
-import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { Scalar } from "@babylonjs/core/Maths/math.scalar";
-import { Node } from "@babylonjs/core/node";
 import { IPosition } from "../cow-game-domain/cow-game-model";
 import { positionToVector3 } from "./babylon-helpers";
 import { CowGameAssetsManager, HORSE_SCALE } from "./assets-manager";
