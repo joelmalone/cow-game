@@ -22,9 +22,9 @@ import { delay } from "../reusable/promise-helpers";
 import { createRendererController } from "./render-controllers";
 import { INpcSpawned } from "../cow-game-domain/cow-game-events";
 
-const CUBE_SIZE = .25
-const CUBE_MASS = 40
-const CUBE_IMPULSE_LENGTH = 50
+const CUBE_SIZE = 0.25;
+const CUBE_MASS = 40;
+const CUBE_IMPULSE_LENGTH = 50;
 
 export function createNpcRenderer(
   scene: Scene,
@@ -33,13 +33,15 @@ export function createNpcRenderer(
 ) {
   const disposers: Disposer[] = [];
 
+  const npcParent = new TransformNode("NPCs", scene);
+  const debugLineParent = new TransformNode("Debug lines", scene);
+
   const renderController = createRendererController(
     (npcSpawnedEvent: INpcSpawned) => npcSpawnedEvent,
     (npcSpawnedEvent) => {
       var routeCounter = 0;
       const cube = createWanderingCube(
         scene,
-        groundMesh,
         positionToVector3(npcSpawnedEvent.route[0], 2),
         (position) => {
           const debugLine = MeshBuilder.CreateLines(
@@ -54,6 +56,7 @@ export function createNpcRenderer(
             },
             scene
           );
+          debugLine.parent = debugLineParent;
           setTimeout(() => {
             debugLine.dispose();
           }, 500);
@@ -70,6 +73,7 @@ export function createNpcRenderer(
           }
         }
       );
+      cube.mesh.parent = npcParent;
       return cube;
     }
   );
@@ -95,7 +99,6 @@ export function createNpcRenderer(
 
 function createWanderingCube(
   scene: Scene,
-  ground: AbstractMesh,
   position: Vector3,
   onMoved: (position: Vector3, impulse: Vector3) => void,
   onArriveAtTarget: () => void
@@ -176,6 +179,7 @@ function createWanderingCube(
   }
 
   return {
+    mesh,
     setMoveTarget,
     dispose,
   };

@@ -151,9 +151,10 @@ export function createCowGameAssetsManager(scene: Scene) {
     console.debug(`Finished loading ${tasks.length} assets in ${msec} msec.`);
   };
 
-  assetsManager.load();
+  const readyPromise = assetsManager.loadAsync();
 
   return {
+    readyPromise,
     loadMeshes,
     loadMesh: (asset: keyof typeof MeshAssets) => loadMeshes(asset)[0],
     loadTextures,

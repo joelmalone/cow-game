@@ -90,5 +90,7 @@ export async function createBabylonScene(
     scene.dispose();
   }
 
+  await assetsManager.readyPromise;
+
   return { scene, dispose };
 }

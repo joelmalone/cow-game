@@ -1,7 +1,8 @@
-import { IPosition } from "./cow-game-model";
+import { IModel, IPosition } from "./cow-game-model";
 
 export interface INewGameStarted {
   type: "INewGameStarted";
+  grid: IModel["grid"];
 }
 
 export interface IDestinationUpdated {

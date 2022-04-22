@@ -1,4 +1,5 @@
 import type { Events } from "./cow-game-events";
+import { createGrid } from "./cow-game-logic";
 import type { IModel, IPosition, Tappable } from "./cow-game-model";
 
 export type Command = (
@@ -10,6 +11,7 @@ export function startNewGame(seed: string): Command {
   return ({ model }, emitEvent) => {
     emitEvent({
       type: "INewGameStarted",
+      grid: createGrid(),
     });
   };
 }

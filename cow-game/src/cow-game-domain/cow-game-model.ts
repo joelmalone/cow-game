@@ -3,7 +3,34 @@ export interface IPosition {
   y: number;
 }
 
-export interface IModel {
+export enum TerrainTypes {
+  Grass,
+  Street_Straight,
+  Street_Intersection,
 }
 
-export type Tappable = 'player' | 'terrain';
+export enum Facings {
+  North,
+  East,
+  South,
+  West,
+}
+
+export const HouseTypes = 20;
+
+export interface ICell {
+  houseType: number;
+  houseFacing: Facings;
+  terrainType: TerrainTypes;
+  terrainFacing: Facings;
+}
+
+export interface IModel {
+  grid: {
+    width: number;
+    height: number;
+    cells: ICell[];
+  };
+}
+
+export type Tappable = "player" | "terrain";

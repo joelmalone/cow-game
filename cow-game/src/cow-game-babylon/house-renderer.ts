@@ -1,3 +1,25 @@
+/*
+
+TODO: look into some optimisations for the environment meshes, e.g.:
+
+General discussion here:
+
+https://www.html5gamedevs.com/topic/37664-load-mesh-without-rendering-it-then-adding-it-to-the-world-many-times/
+
+Mesh merging:
+
+https://doc.babylonjs.com/divingDeeper/mesh/mergeMeshes
+
+Instancing:
+
+https://doc.babylonjs.com/divingDeeper/mesh/copies/instances
+
+Thin instancing:
+
+  https://doc.babylonjs.com/divingDeeper/mesh/copies/thinInstances
+
+*/
+
 import type { Scene } from "@babylonjs/core/scene";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
@@ -6,6 +28,7 @@ import { Disposer } from "../reusable/disposable";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
 import { positionToVector3 } from "./babylon-helpers";
 import { CowGameAssetsManager, HOUSE_SCALE } from "./assets-manager";
+import { Facings, HouseTypes, ICell } from "../cow-game-domain/cow-game-model";
 
 export function createHouseRenderer(
   scene: Scene,
@@ -16,7 +39,7 @@ export function createHouseRenderer(
 
   console.log("Loading house stuff...");
 
-  Promise.all(
+  const houseFactoryPromise = Promise.all(
     assetsManager.loadMeshes("house1", "house2", "house3", "house4", "house5")
   ).then(async (houseAssets) => {
     console.debug(`Loaded ${houseAssets.length} house assets.`, houseAssets);
@@ -39,68 +62,75 @@ export function createHouseRenderer(
 
     console.log("Loaded house materials.", houseMaterials);
 
-    // TODO: look into some optimisations for the environment meshes
-    // General discussion here:
-    //  https://www.html5gamedevs.com/topic/37664-load-mesh-without-rendering-it-then-adding-it-to-the-world-many-times/
-    // Mesh merging:
-    //  https://doc.babylonjs.com/divingDeeper/mesh/mergeMeshes
-    // Instancing:
-    //  https://doc.babylonjs.com/divingDeeper/mesh/copies/instances
-    // Thin instancing:
-    //  https://doc.babylonjs.com/divingDeeper/mesh/copies/thinInstances
-
-    // TODO: spawn the houses according to the game model
-
     const houseClonesParent = new TransformNode("Houses", scene);
 
-    // Create a pool of each mesh-meterial combination
-    const housePool = houseAssets.flatMap((houseAsset) =>
-      houseMaterials.map((houseMaterial) => ({ houseAsset, houseMaterial }))
-    );
+    return function instantiateHouseFromHouseType(
+      houseType: number,
+      x: number,
+      y: number,
+      facing: Facings
+    ) {
+      if (HouseTypes !== 20) {
+        console.error(
+          "The renderer code expects exactly 25 house types so uhhhh."
+        );
+      }
 
-    // North side of the street
-    for (var x = -5; x < 5; x++) {
-      // Pick a random mesh-material comination and remove it from the pool
-      var { houseAsset, houseMaterial } = housePool.splice(
-        Math.trunc(Math.random() * housePool.length),
-        1
-      )[0];
+      const houseAsset = houseAssets[houseType % 5];
+      const houseMaterial = houseMaterials[Math.trunc(houseType / 5)];
 
-      const clone =
+      console.log(houseType % 5,{houseMaterial})
+
+      const cloneRoot =
         houseAsset.loadedContainer.instantiateModelsToScene().rootNodes[0];
-      clone.name = `House North clone ${x}`;
-      clone.parent = houseClonesParent;
+      cloneRoot.parent = houseClonesParent;
+      cloneRoot.name = `House North clone ${x} ${y}`;
 
-      clone.position = positionToVector3({ x, y: 1 });
+      cloneRoot.position = positionToVector3({ x, y });
 
-      clone.getChildMeshes().forEach((mesh) => (mesh.material = houseMaterial));
+      cloneRoot
+        .getChildMeshes()
+        .forEach((mesh) => (mesh.material = houseMaterial));
 
-      disposers.push(() => clone.dispose());
-    }
+      function dispose() {
+        cloneRoot.dispose();
+      }
 
-    // South side of the street
-    for (var x = -5; x < 5; x++) {
-      // Pick a random mesh-material comination and remove it from the pool
-      var { houseAsset, houseMaterial } = housePool.splice(
-        Math.trunc(Math.random() * housePool.length),
-        1
-      )[0];
+      return {
+        dispose,
+      };
+    };
+  });
 
-      const clone =
-        houseAsset.loadedContainer.instantiateModelsToScene().rootNodes[0];
-      clone.name = `House South clone ${x}`;
-      clone.parent = houseClonesParent;
+  const unsubscribeEvents = gameController.subscribeEvents((ev) => {
+    switch (ev.event.type) {
+      case "INewGameStarted": {
+        const { grid } = ev.event;
 
-      clone.position = positionToVector3({ x, y: -1 });
-      clone.addRotation(0, Math.PI, 0);
+        for (var x = 0; x < grid.width; x++) {
+          for (var y = 0; y < grid.height; y++) {
+            const cell = grid.cells[x + y * grid.width];
+            // Need to copy x and y because they're not scoped and won't be included in the closure
+            const xyCopy = { x, y };
 
-      clone.getChildMeshes().forEach((mesh) => (mesh.material = houseMaterial));
-
-      disposers.push(() => clone.dispose());
+            houseFactoryPromise.then((houseFactory) => {
+              const houseClone = houseFactory(
+                cell.houseType,
+                xyCopy.x,
+                xyCopy.y,
+                cell.houseFacing
+              );
+              disposers.push(() => houseClone.dispose());
+            });
+          }
+        }
+        break;
+      }
     }
   });
 
   function dispose() {
+    unsubscribeEvents();
     disposers.forEach((d) => d());
   }
 
