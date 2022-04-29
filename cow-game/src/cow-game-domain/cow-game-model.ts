@@ -6,7 +6,7 @@ export interface IPosition {
 export enum TerrainTypes {
   Grass,
   Street_Straight,
-  Street_Intersection,
+  Street_4Way,
 }
 
 export enum Facings {
@@ -19,8 +19,10 @@ export enum Facings {
 export const HouseTypes = 20;
 
 export interface ICell {
-  houseType: number;
-  houseFacing: Facings;
+  house: {
+    houseType: number;
+    houseFacing: Facings;
+  } | null;
   terrainType: TerrainTypes;
   terrainFacing: Facings;
 }
@@ -31,6 +33,8 @@ export interface IModel {
     height: number;
     cells: ICell[];
   };
+  npcSpawned: number;
+  horsesSpawned: number;
 }
 
 export type Tappable = "player" | "terrain";

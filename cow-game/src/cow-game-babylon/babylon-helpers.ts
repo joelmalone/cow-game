@@ -2,7 +2,11 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Plane } from "@babylonjs/core/Maths/math.plane";
 import { Node } from "@babylonjs/core/node";
 
-import { IPosition, Tappable } from "../cow-game-domain/cow-game-model";
+import {
+  Facings,
+  IPosition,
+  Tappable,
+} from "../cow-game-domain/cow-game-model";
 
 /*
 
@@ -45,6 +49,13 @@ export function vector3ToPosition(vector3: Vector3): IPosition {
 export function positionToVector3(position: IPosition, y: number = 0): Vector3 {
   return new Vector3(position.x * WorldScale, y, position.y * WorldScale);
 }
+
+export const FacingsToRotation = {
+  [Facings.North]: new Vector3(0, 0, 0),
+  [Facings.East]: new Vector3(0, Math.PI * 0.5, 0),
+  [Facings.South]: new Vector3(0, Math.PI, 0),
+  [Facings.West]: new Vector3(0, Math.PI * -0.5, 0),
+};
 
 export interface Metadata {
   tappable?: Tappable;

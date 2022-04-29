@@ -1,10 +1,8 @@
 import { AppError } from "./app-errors";
 
-const Verbose = false;
-
 const log = {
   debug: (...p: unknown[]) =>
-  Verbose && console.debug("[command-event-model-controller]", ...p),
+    console.debug("[command-event-model-controller]", ...p),
   error: (...p: unknown[]) =>
     console.error("[command-event-model-controller]", ...p),
 };
@@ -74,7 +72,7 @@ export function createCommandEventModelController<TModel, TEvent, TCommand>(
 
           function onEventEmitted(event: TEvent) {
             const newModel = reduce(tentativeModel, event);
-            if(!Object.is(newModel, tentativeModel)){
+            if (!Object.is(newModel, tentativeModel)) {
               tentativeModel = newModel;
               tentativeVersion++;
             }

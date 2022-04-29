@@ -14,7 +14,7 @@ export function createCameraRenderer(
   scene: Scene,
   gameController: GameController
 ) {
-  const cameraAngle = new Vector3(1, -1, 1);
+  const cameraAngle = new Vector3(1, -1, 2);
   const focus = new Vector3(0, 0, 0);
   const cameraDistance = 100;
 

@@ -17,11 +17,10 @@ window.CANNON = CANNON;
 import type { GameController } from "../cow-game-domain/cow-game-controller";
 import { createHorseRenderer } from "./horse-renderer";
 import { createCameraRenderer } from "./camera-renderer";
-import { createEnvironmentRenderer } from "./environment-renderer";
 import { createRigidHorseRenderer as createRigidHorsesRenderer } from "./rigid-horses-renderer";
 import { createNpcRenderer } from "./npc-renderer";
 import { createCowGameAssetsManager } from "./assets-manager";
-import { createHouseRenderer } from "./house-renderer";
+import { createGridRenderer } from "./grid-renderer";
 
 // TODO:
 // https://playground.babylonjs.com/#CSPJ7A#3
@@ -64,12 +63,7 @@ export async function createBabylonScene(
 
   const cameraRenderer = createCameraRenderer(canvas, scene, gameController);
 
-  const environmentRenderer = createEnvironmentRenderer(
-    scene,
-    gameController,
-    assetsManager
-  );
-  const houseRenderer = createHouseRenderer(
+  const houseRenderer = createGridRenderer(
     scene,
     gameController,
     assetsManager
@@ -85,7 +79,6 @@ export async function createBabylonScene(
     npcRenderer.dispose();
     horseRenderer.dispose();
     houseRenderer.dispose();
-    environmentRenderer.dispose();
     cameraRenderer.dispose();
     scene.dispose();
   }
