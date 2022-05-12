@@ -34,7 +34,7 @@ import {
 } from "./assets-manager";
 import {
   Facings,
-  HouseTypes,
+  HouseTypesCount,
   ICell,
   TerrainTypes,
 } from "../cow-game-domain/cow-game-model";
@@ -103,7 +103,7 @@ export function createGridRenderer(
  * @returns A method to call to dispose the instantiated house.
  */
 function createHouseFactory(scene: Scene, assetsManager: CowGameAssetsManager) {
-  if (HouseTypes !== 20) {
+  if (HouseTypesCount !== 20) {
     console.error("The renderer code expects exactly 20 house types so uhhhh.");
   }
 

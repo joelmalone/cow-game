@@ -16,7 +16,7 @@ export enum Facings {
   West,
 }
 
-export const HouseTypes = 20;
+export const HouseTypesCount = 20;
 
 export interface ICell {
   house: {

@@ -1,6 +1,6 @@
 import {
   Facings,
-  HouseTypes,
+  HouseTypesCount,
   ICell,
   IModel,
   TerrainTypes,
@@ -10,10 +10,9 @@ export function createGrid(): IModel["grid"] {
   const width = 10;
   const height = 10;
   const cells: ICell[] = [];
-  const housesPool = new Array(HouseTypes).fill(null).map((_, index) => index);
 
-  for (var x = 0; x < width; x++) {
-    for (var y = 0; y < height; y++) {
+  for (var y = 0; y < height; y++) {
+    for (var x = 0; x < width; x++) {
       if (x % 3 == 0 || y % 3 == 0) {
         // Street
 
@@ -26,22 +25,20 @@ export function createGrid(): IModel["grid"] {
             isNorthSouth && isEastWest
               ? TerrainTypes.Street_4Way
               : TerrainTypes.Street_Straight,
-          terrainFacing: isNorthSouth ? Facings.North : Facings.East,
+          terrainFacing: isNorthSouth ? Facings.East : Facings.North,
         });
       } else {
         // House on grass
-        const houseType = housesPool.length
-          ? housesPool.splice(
-              Math.trunc(Math.random() * housesPool.length),
-              1
-            )[0]
-          : null;
+
+        const houseType = Math.trunc(Math.random() * HouseTypesCount);
+        const houseFacing =
+          y % 3 == 1 ? Facings.South : x % 3 == 1 ? Facings.West : Facings.East;
 
         cells.push({
           house: houseType
             ? {
                 houseType,
-                houseFacing: Facings.South,
+                houseFacing,
               }
             : null,
           terrainType: TerrainTypes.Grass,
