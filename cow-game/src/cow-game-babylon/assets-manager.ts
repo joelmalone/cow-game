@@ -1,12 +1,7 @@
-import { AssetContainer } from "@babylonjs/core/assetContainer";
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import {
-  AbstractAssetTask,
   AssetsManager,
   ContainerAssetTask,
-  MeshAssetTask,
 } from "@babylonjs/core/Misc/assetsManager";
 import { Scene } from "@babylonjs/core/scene";
 
@@ -19,6 +14,7 @@ export const MeshAssets = {
   house4: (await import("./assets/House4.glb?url")).default,
   house5: (await import("./assets/House5.glb?url")).default,
   streetStraight: (await import("./assets/Street_Straight.glb?url")).default,
+  street4Way: (await import("./assets/Street_4Way.glb?url")).default,
   horse: (await import("./assets/Horse.gltf?url")).default,
 };
 
@@ -151,9 +147,10 @@ export function createCowGameAssetsManager(scene: Scene) {
     console.debug(`Finished loading ${tasks.length} assets in ${msec} msec.`);
   };
 
-  assetsManager.load();
+  const readyPromise = assetsManager.loadAsync();
 
   return {
+    readyPromise,
     loadMeshes,
     loadMesh: (asset: keyof typeof MeshAssets) => loadMeshes(asset)[0],
     loadTextures,

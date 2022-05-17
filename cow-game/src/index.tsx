@@ -12,6 +12,7 @@ import "./index.css";
 import { createBabylonScene } from "./cow-game-babylon/babylon-scene";
 import { createGameController } from "./cow-game-domain/cow-game-controller";
 import { startNpcSpawnerBehaviour } from "./cow-game-domain/cow-game-behaviours";
+import { startNewGame } from "./cow-game-domain/cow-game-commands";
 
 const controller = createGameController();
 
@@ -32,6 +33,8 @@ async function createBabylonEngine(canvas: HTMLCanvasElement) {
       (disposableScene.scene as any).debugLayer.show();
     }
   });
+
+  controller.enqueueCommand(startNewGame(''))
 
   const disposeSpawnNpcBehaviour = startNpcSpawnerBehaviour(controller)
 
