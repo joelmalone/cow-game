@@ -1,5 +1,5 @@
 import type { Events } from "./cow-game-events";
-import { createGrid } from "./cow-game-logic";
+import { createGrid, enumerateUnusedHouses } from "./cow-game-logic";
 import type { IModel, IPosition, Tappable } from "./cow-game-model";
 
 export type Command = (
@@ -12,6 +12,10 @@ export function startNewGame(seed: string): Command {
     emitEvent({
       type: "INewGameStarted",
       grid: createGrid(),
+      npcSpawns: [
+        { x: -1, y: 0 },
+        { x: 9, y: 0 },
+      ],
     });
   };
 }
@@ -33,19 +37,20 @@ export function tap(tappable: Tappable, position: IPosition): Command {
 
 export function spawnNpc(): Command {
   return function spawnNpc({ model }, emitEvent) {
-    const spawnWest = Math.random() < 0.5;
-    const spawnAddress = {
-      x: spawnWest ? -5 : 5,
-      y: 0,
-    };
-    const houseAddress = {
-      x: Math.trunc(Math.random() * 5) * (spawnWest ? 1 : -1),
-      y: Math.random() < 0.5 ? -1 : 1,
-    };
+    // Spawn at one of the spawn positions
+    const spawnPosition =
+      model.npcSpawnPositions[Math.trunc(Math.random() * model.npcSpawnPositions.length)];
+
+    // Pick an unused house
+    const unusedHouses = Array.from(enumerateUnusedHouses(model));
+    if (!unusedHouses.length) {
+      return;
+    }
+
+    // TODO: solve pathing
     const route = [
-      spawnAddress,
-      { x: houseAddress.x, y: spawnAddress.y },
-      houseAddress,
+      spawnPosition,
+      unusedHouses[Math.trunc(Math.random() * unusedHouses.length)],
     ];
     emitEvent({ type: "INpcSpawned", route });
   };

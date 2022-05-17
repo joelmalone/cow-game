@@ -54,3 +54,23 @@ export function createGrid(): IModel["grid"] {
     cells,
   };
 }
+
+export function* enumerateUnusedHouses(model: IModel) {
+  for (var y = 0; y < model.grid.height; y++) {
+    for (var x = 0; x < model.grid.width; x++) {
+      const isHouse = model.grid.cells[y * model.grid.width + x].house;
+      if (!isHouse) {
+        continue;
+      }
+
+      const occupado = model.npcs.some(
+        (i) => i.home.x === x && i.home.y === y
+      );
+      if (occupado) {
+        continue;
+      }
+
+      yield { x, y };
+    }
+  }
+}

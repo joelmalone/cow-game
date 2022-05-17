@@ -6,7 +6,8 @@ export function reduce(model: IModel, ev: Events): IModel {
     case "INewGameStarted": {
       return {
         grid: ev.grid,
-        npcSpawned: 0,
+        npcSpawnPositions: ev.npcSpawns,
+        npcs: [],
         horsesSpawned: 0,
       };
     }
@@ -14,9 +15,10 @@ export function reduce(model: IModel, ev: Events): IModel {
       return model;
     }
     case "INpcSpawned": {
+      const npc = { home: ev.route[ev.route.length - 1] };
       return {
         ...model,
-        npcSpawned: model.npcSpawned + 1,
+        npcs: [npc, ...model.npcs],
       };
     }
     case "IHorseSpawned": {
