@@ -34,6 +34,11 @@ at -1,2 has these bounds in the scene: (-6,6) -> (-2,10)
 /** @type {number} The scale of the world compared to IPosition values. */
 export const WorldScale = 4;
 
+/**
+ * The local mid-point of a grid tile, based on WorldScale.
+ */
+export const GridMidpoint = new Vector3(WorldScale * 0.5, 0, WorldScale * 0.5);
+
 export const GroundPlane = Plane.FromPositionAndNormal(
   Vector3.Zero(),
   Vector3.Up()

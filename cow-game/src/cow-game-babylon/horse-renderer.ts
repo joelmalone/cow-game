@@ -5,7 +5,11 @@ import { PhysicsImpostor } from "@babylonjs/core/Physics/physicsImpostor";
 
 import { Disposer } from "../reusable/disposable";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
-import { positionToVector3, setMetadata } from "./babylon-helpers";
+import {
+  GridMidpoint,
+  positionToVector3,
+  setMetadata,
+} from "./babylon-helpers";
 import { CowGameAssetsManager, HORSE_SCALE } from "./assets-manager";
 import { AppError } from "../reusable/app-errors";
 import { IPosition } from "../cow-game-domain/cow-game-model";
@@ -153,7 +157,9 @@ function createPlayerHorseRenderer(
     const renderObservable = scene.onBeforeRenderObservable.add(() => {
       const deltaTime = scene.getEngine().getDeltaTime();
 
-      var diff = walkTarget && positionToVector3(walkTarget).subtract(horseRoot.position);
+      var diff =
+        walkTarget &&
+        positionToVector3(walkTarget).subtract(horseRoot.position);
       if (diff) {
         diff.y = 0;
       }
@@ -177,7 +183,9 @@ function createPlayerHorseRenderer(
     // Move the horse
     const teleportObservable = scene.onBeforeRenderObservable.add(() => {
       if (teleportTo) {
-        horseRoot.position = positionToVector3(teleportTo, height * 0.5);
+        horseRoot.position = positionToVector3(teleportTo, height * 0.5).add(
+          GridMidpoint
+        );
         teleportTo = null;
       }
     });

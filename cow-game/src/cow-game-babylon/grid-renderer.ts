@@ -26,7 +26,7 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
 import { Disposer } from "../reusable/disposable";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
-import { FacingsToRotation, positionToVector3, WorldScale } from "./babylon-helpers";
+import { FacingsToRotation, GridMidpoint, positionToVector3, WorldScale } from "./babylon-helpers";
 import {
   CowGameAssetsManager,
   HOUSE_SCALE,
@@ -141,7 +141,7 @@ function createHouseFactory(scene: Scene, assetsManager: CowGameAssetsManager) {
   // Return a method that is asynchronous under the hood, but presents as
   // a standard method that returns a mini API to dispose the mesh
 
-  return function instantiateHouseFromHouseType(
+  return function instantiateHouse(
     houseType: number,
     x: number,
     y: number,
@@ -163,7 +163,7 @@ function createHouseFactory(scene: Scene, assetsManager: CowGameAssetsManager) {
       cloneRoot.parent = houseClonesParent;
       cloneRoot.name = `House ${x} ${y}`;
 
-      cloneRoot.position = positionToVector3({ x, y });
+      cloneRoot.position = positionToVector3({ x, y }).add(GridMidpoint);
       cloneRoot.rotation = FacingsToRotation[facing];
 
       cloneRoot
@@ -228,7 +228,7 @@ function createTerrainFactory(
     const clone = grassTile.clone(`${x} ${y} grass`, terrainClonesParent);
 
     if (clone) {
-      clone.position = positionToVector3({ x, y }, -0.5);
+      clone.position = positionToVector3({ x, y }, -0.5).add(GridMidpoint);
       clone.setEnabled(true);
       return clone;
     } else {
@@ -239,7 +239,7 @@ function createTerrainFactory(
   // Return a method that is asynchronous under the hood, but presents as
   // a standard method that returns a mini API to dispose the mesh
 
-  return function instantiateTerrainFromHouseType(
+  return function instantiateTerrain(
     terrainType: TerrainTypes,
     x: number,
     y: number,
@@ -270,7 +270,7 @@ function createTerrainFactory(
         cloneRoot.parent = terrainClonesParent;
         cloneRoot.name = `${x} ${y} terrain`;
 
-        cloneRoot.position = positionToVector3({ x, y }, -0.3);
+        cloneRoot.position = positionToVector3({ x, y }, -0.3).add(GridMidpoint);
         cloneRoot.rotation = FacingsToRotation[facing];
       });
     }

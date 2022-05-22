@@ -65,7 +65,8 @@ export function createCameraRenderer(
     const t = ray.intersectsPlane(GroundPlane);
     const hit = t && ray.origin.add(ray.direction.scale(t));
     if (hit) {
-      gameController.enqueueCommand(tap("terrain", { x: hit.x, y: hit.z }));
+      const position = vector3ToPosition(hit)
+      gameController.enqueueCommand(tap("terrain", position));
     }
   };
 

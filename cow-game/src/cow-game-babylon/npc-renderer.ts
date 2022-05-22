@@ -14,7 +14,7 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scalar } from "@babylonjs/core/Maths/math.scalar";
 import { Node } from "@babylonjs/core/node";
 import { IPosition } from "../cow-game-domain/cow-game-model";
-import { positionToVector3, vector3ToPosition } from "./babylon-helpers";
+import { GridMidpoint, positionToVector3, vector3ToPosition } from "./babylon-helpers";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { ActionManager } from "@babylonjs/core/Actions/actionManager";
 import { ExecuteCodeAction } from "@babylonjs/core/Actions/directActions";
@@ -42,7 +42,7 @@ export function createNpcRenderer(
       var routeCounter = 0;
       const cube = createWanderingCube(
         scene,
-        positionToVector3(npcSpawnedEvent.route[0], 2),
+        positionToVector3(npcSpawnedEvent.route[0], 2).add(GridMidpoint),
         (position) => {
           const debugLine = MeshBuilder.CreateLines(
             "NPC Destination Dest Line",
@@ -51,7 +51,7 @@ export function createNpcRenderer(
                 position,
                 ...npcSpawnedEvent.route
                   .slice(routeCounter)
-                  .map((p) => positionToVector3(p)),
+                  .map((p) => positionToVector3(p).add(GridMidpoint)),
               ],
             },
             scene
