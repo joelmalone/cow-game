@@ -59,7 +59,10 @@ function createPlayerHorseRenderer(
   var walkTarget: IPosition | null = null;
 
   assetsManager.loadMesh("horse").then(({ loadedContainer }) => {
-    const instantiated = loadedContainer.instantiateModelsToScene();
+    const instantiated = loadedContainer.instantiateModelsToScene(
+      // Keep the original animationGroup names
+      (n) => n
+    );
     const horseMesh = instantiated.rootNodes[0];
     horseMesh.name = "Player horse";
     if (!horseMesh) {
@@ -99,6 +102,12 @@ function createPlayerHorseRenderer(
     const walkingAnimation = instantiated.animationGroups.find(
       (a) => a.name === "Walk"
     )!;
+    if (!idleAnimation) {
+      throw new AppError("Unable to find at least one animation group.", {
+        idleAnimation,
+        walkingAnimation,
+      });
+    }
     [idleAnimation, walkingAnimation].forEach((a) => {
       a.setWeightForAllAnimatables(0);
       a.start(true);
