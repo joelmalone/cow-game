@@ -14,13 +14,18 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scalar } from "@babylonjs/core/Maths/math.scalar";
 import { Node } from "@babylonjs/core/node";
 import { IPosition } from "../cow-game-domain/cow-game-model";
-import { GridMidpoint, positionToVector3, vector3ToPosition } from "./babylon-helpers";
+import {
+  GridMidpoint,
+  positionToVector3,
+  vector3ToPosition,
+} from "./babylon-helpers";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { ActionManager } from "@babylonjs/core/Actions/actionManager";
 import { ExecuteCodeAction } from "@babylonjs/core/Actions/directActions";
 import { delay } from "../reusable/promise-helpers";
 import { createRendererController } from "./render-controllers";
 import { INpcSpawned } from "../cow-game-domain/cow-game-events";
+import { notifyNpcArrivedAtHome } from "../cow-game-domain/cow-game-commands";
 
 const CUBE_SIZE = 0.25;
 const CUBE_MASS = 40;
@@ -66,6 +71,11 @@ export function createNpcRenderer(
           if (routeCounter >= npcSpawnedEvent.route.length) {
             // Arrived at home!
             console.debug(`An npc has arrived at home!`, npcSpawnedEvent);
+            gameController.enqueueCommand(
+              notifyNpcArrivedAtHome(
+                npcSpawnedEvent.route[npcSpawnedEvent.route.length - 1]
+              )
+            );
           } else {
             cube.setMoveTarget(
               positionToVector3(npcSpawnedEvent.route[routeCounter])

@@ -37,6 +37,7 @@ export interface IModel {
   npcSpawnPositions: IPosition[];
   npcs: { home: IPosition }[];
   horsesSpawned: number;
+  housesLost: IPosition[];
 }
 
 export type Tappable = "player" | "terrain";

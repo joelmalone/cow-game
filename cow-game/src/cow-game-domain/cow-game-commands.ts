@@ -53,12 +53,13 @@ export function spawnNpc(): Command {
 
     const homeAddress =
       unusedHouses[Math.trunc(Math.random() * unusedHouses.length)];
-    // TODO: solve pathing
-    // const route = [
-    //   spawnPosition,
-    //   homeAddress,
-    // ];
     const route = findPath(model.grid, spawnPosition, homeAddress);
     emitEvent({ type: "INpcSpawned", route });
+  };
+}
+
+export function notifyNpcArrivedAtHome(homeAddress: IPosition): Command {
+  return function notifyNpcArrivedAtHome({ model }, emitEvent) {
+    emitEvent({ type: "INpcArrivedAtHome", homeAddress });
   };
 }

@@ -10,11 +10,14 @@ export function reduce(model: IModel, ev: Events): IModel {
         npcSpawnPositions: ev.npcSpawns,
         npcs: [],
         horsesSpawned: 0,
+        housesLost: [],
       };
     }
+
     case "IDestinationUpdated": {
       return model;
     }
+
     case "INpcSpawned": {
       const npc = { home: ev.route[ev.route.length - 1] };
       return {
@@ -22,10 +25,19 @@ export function reduce(model: IModel, ev: Events): IModel {
         npcs: [npc, ...model.npcs],
       };
     }
+
     case "IHorseSpawned": {
       return {
         ...model,
         horsesSpawned: model.horsesSpawned + 1,
+      };
+    }
+
+    case "INpcArrivedAtHome": {
+      const { homeAddress } = ev;
+      return {
+        ...model,
+        housesLost: [...model.housesLost, homeAddress],
       };
     }
   }

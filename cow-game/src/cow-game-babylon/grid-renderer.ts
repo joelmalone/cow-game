@@ -24,9 +24,14 @@ import type { Scene } from "@babylonjs/core/scene";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
-import { Disposer } from "../reusable/disposable";
+import { Disposable, Disposer } from "../reusable/disposable";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
-import { FacingsToRotation, GridMidpoint, positionToVector3, WorldScale } from "./babylon-helpers";
+import {
+  FacingsToRotation,
+  GridMidpoint,
+  positionToVector3,
+  WorldScale,
+} from "./babylon-helpers";
 import {
   CowGameAssetsManager,
   HOUSE_SCALE,
@@ -50,6 +55,8 @@ export function createGridRenderer(
   const houseFactory = createHouseFactory(scene, assetsManager);
   const terrainFactory = createTerrainFactory(scene, assetsManager);
 
+  const houses = new Map<string, ReturnType<typeof houseFactory>>();
+
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     switch (ev.event.type) {
       case "INewGameStarted": {
@@ -69,7 +76,12 @@ export function createGridRenderer(
                 xyCopy.y,
                 house.houseFacing
               );
-              disposers.push(() => houseClone.dispose());
+              const key = `${xyCopy.x},${xyCopy.y}`;
+              houses.set(key, houseClone);
+              disposers.push(() => {
+                houses.delete(key);
+                houseClone.dispose();
+              });
             }
 
             const terrainClone = terrainFactory(
@@ -80,6 +92,16 @@ export function createGridRenderer(
             );
             disposers.push(() => terrainClone.dispose());
           }
+        }
+        break;
+      }
+
+      case "INpcArrivedAtHome": {
+        const renderedHouse = houses.get(
+          `${ev.event.homeAddress.x},${ev.event.homeAddress.y}`
+        );
+        if (renderedHouse) {
+          renderedHouse.explode();
         }
         break;
       }
@@ -171,6 +193,10 @@ function createHouseFactory(scene: Scene, assetsManager: CowGameAssetsManager) {
         .forEach((mesh) => (mesh.material = houseMaterial));
     });
 
+    function explode() {
+      cloneRoot?.dispose();
+    }
+
     function dispose() {
       disposed = true;
       cloneRoot?.dispose();
@@ -178,6 +204,7 @@ function createHouseFactory(scene: Scene, assetsManager: CowGameAssetsManager) {
     }
 
     return {
+      explode,
       dispose,
     };
   };
@@ -270,7 +297,9 @@ function createTerrainFactory(
         cloneRoot.parent = terrainClonesParent;
         cloneRoot.name = `${x} ${y} terrain`;
 
-        cloneRoot.position = positionToVector3({ x, y }, -0.3).add(GridMidpoint);
+        cloneRoot.position = positionToVector3({ x, y }, -0.3).add(
+          GridMidpoint
+        );
         cloneRoot.rotation = FacingsToRotation[facing];
       });
     }

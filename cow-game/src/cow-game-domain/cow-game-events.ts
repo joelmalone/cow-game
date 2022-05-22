@@ -25,8 +25,14 @@ export interface INpcSpawned {
   route: IPosition[];
 }
 
+export interface INpcArrivedAtHome {
+  type: "INpcArrivedAtHome";
+  homeAddress: IPosition;
+}
+
 export type Events =
   | INewGameStarted
   | IDestinationUpdated
   | IHorseSpawned
-  | INpcSpawned;
+  | INpcSpawned
+  | INpcArrivedAtHome;
