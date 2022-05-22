@@ -9,8 +9,8 @@ import {
 } from "./cow-game-model";
 
 export function createGrid(): IModel["grid"] {
-  const width = 10;
-  const height = 10;
+  const width = 7;
+  const height = 7;
   const cells: ICell[] = [];
 
   for (var y = 0; y < height; y++) {

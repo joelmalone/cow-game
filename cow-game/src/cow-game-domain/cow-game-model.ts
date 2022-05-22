@@ -28,6 +28,7 @@ export interface ICell {
 }
 
 export interface IModel {
+  npcLifespan: number;
   grid: {
     width: number;
     height: number;
@@ -38,6 +39,7 @@ export interface IModel {
   npcs: { home: IPosition }[];
   horsesSpawned: number;
   housesLost: IPosition[];
+  housesWon: IPosition[];
 }
 
 export type Tappable = "player" | "terrain";

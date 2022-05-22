@@ -1,13 +1,17 @@
-import type { Disposable } from '../reusable/disposable';
-import { AppError } from '../reusable/app-errors';
+import type { Disposable } from "../reusable/disposable";
+import { AppError } from "../reusable/app-errors";
 
 export interface IRendererFactory<T, R extends Disposable> {
   (item: T): R;
 }
 
-export function createRendererController<TItem, TKey, TRenderer extends Disposable>(
+export function createRendererController<
+  TItem,
+  TKey,
+  TRenderer extends Disposable
+>(
   keyGetter: (item: TItem) => TKey,
-  factory: IRendererFactory<TItem, TRenderer>,
+  factory: IRendererFactory<TItem, TRenderer>
 ) {
   const renderers = new Map<TKey, TRenderer>();
 
@@ -16,8 +20,8 @@ export function createRendererController<TItem, TKey, TRenderer extends Disposab
     const existingRenderer = renderers.get(key);
     if (existingRenderer) {
       throw new AppError(
-        'This key has already been added. You must call update() to update an existing item.',
-        { key, item },
+        "This key has already been added. You must call update() to update an existing item.",
+        { key, item }
       );
     }
     const newRenderer = factory(item);
@@ -25,24 +29,20 @@ export function createRendererController<TItem, TKey, TRenderer extends Disposab
     return newRenderer;
   }
 
-  function get(item: TItem): TRenderer {
-    const key = keyGetter(item);
+  function get(key: TKey): TRenderer {
     const existingRenderer = renderers.get(key);
     if (!existingRenderer) {
-      throw new AppError('The key was not found in the array.', {
+      throw new AppError("The key was not found in the array.", {
         key,
-        item,
       });
     }
     return existingRenderer;
   }
 
-  function remove(item: TItem) {
-    const key = keyGetter(item);
+  function remove(key: TKey) {
     if (!renderers.delete(key)) {
-      throw new AppError('The key to remove was not found in the array.', {
+      throw new AppError("The key to remove was not found in the array.", {
         key,
-        item,
       });
     }
   }

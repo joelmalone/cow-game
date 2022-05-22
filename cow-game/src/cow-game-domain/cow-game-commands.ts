@@ -11,6 +11,7 @@ export function startNewGame(seed: string): Command {
   return ({ model }, emitEvent) => {
     emitEvent({
       type: "INewGameStarted",
+      npcLifespan: 60,
       grid: createGrid(),
       playerSpawn: { x: 3, y: 3 },
       npcSpawns: [
@@ -39,6 +40,8 @@ export function tap(tappable: Tappable, position: IPosition): Command {
 
 export function spawnNpc(): Command {
   return function spawnNpc({ model }, emitEvent) {
+    const npcId = model.npcs.length;
+
     // Spawn at one of the spawn positions
     const spawnPosition =
       model.npcSpawnPositions[
@@ -54,12 +57,29 @@ export function spawnNpc(): Command {
     const homeAddress =
       unusedHouses[Math.trunc(Math.random() * unusedHouses.length)];
     const route = findPath(model.grid, spawnPosition, homeAddress);
-    emitEvent({ type: "INpcSpawned", route });
+    emitEvent({
+      type: "INpcSpawned",
+      npcId,
+      route,
+      lifespan: model.npcLifespan,
+    });
   };
 }
 
-export function notifyNpcArrivedAtHome(homeAddress: IPosition): Command {
+export function notifyNpcArrivedAtHome(
+  npcId: number,
+  homeAddress: IPosition
+): Command {
   return function notifyNpcArrivedAtHome({ model }, emitEvent) {
-    emitEvent({ type: "INpcArrivedAtHome", homeAddress });
+    emitEvent({ type: "INpcArrivedAtHome", npcId, homeAddress });
+  };
+}
+
+export function notifyNpcExploded(
+  npcId: number,
+  homeAddress: IPosition
+): Command {
+  return function notifyNpcExploded({ model }, emitEvent) {
+    emitEvent({ type: "INpcExploded", npcId, homeAddress });
   };
 }

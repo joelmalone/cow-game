@@ -25,7 +25,10 @@ import { ExecuteCodeAction } from "@babylonjs/core/Actions/directActions";
 import { delay } from "../reusable/promise-helpers";
 import { createRendererController } from "./render-controllers";
 import { INpcSpawned } from "../cow-game-domain/cow-game-events";
-import { notifyNpcArrivedAtHome } from "../cow-game-domain/cow-game-commands";
+import {
+  notifyNpcArrivedAtHome,
+  notifyNpcExploded,
+} from "../cow-game-domain/cow-game-commands";
 
 const CUBE_SIZE = 0.25;
 const CUBE_MASS = 40;
@@ -36,13 +39,11 @@ export function createNpcRenderer(
   gameController: GameController,
   groundMesh: AbstractMesh
 ) {
-  const disposers: Disposer[] = [];
-
   const npcParent = new TransformNode("NPCs", scene);
   const debugLineParent = new TransformNode("Debug lines", scene);
 
   const renderController = createRendererController(
-    (npcSpawnedEvent: INpcSpawned) => npcSpawnedEvent,
+    (npcSpawnedEvent: INpcSpawned) => npcSpawnedEvent.npcId,
     (npcSpawnedEvent) => {
       var routeCounter = 0;
       const cube = createWanderingCube(
@@ -73,6 +74,7 @@ export function createNpcRenderer(
             console.debug(`An npc has arrived at home!`, npcSpawnedEvent);
             gameController.enqueueCommand(
               notifyNpcArrivedAtHome(
+                npcSpawnedEvent.npcId,
                 npcSpawnedEvent.route[npcSpawnedEvent.route.length - 1]
               )
             );
@@ -84,7 +86,23 @@ export function createNpcRenderer(
         }
       );
       cube.mesh.parent = npcParent;
-      return cube;
+
+      const timeout = setTimeout(() => {
+        gameController.enqueueCommand(
+          notifyNpcExploded(
+            npcSpawnedEvent.npcId,
+            npcSpawnedEvent.route[npcSpawnedEvent.route.length - 1]
+          )
+        );
+      }, npcSpawnedEvent.lifespan * 1000);
+
+      return {
+        ...cube,
+        dispose: () => {
+          clearTimeout(timeout);
+          cube.dispose();
+        },
+      };
     }
   );
 
@@ -94,12 +112,26 @@ export function createNpcRenderer(
         renderController.add(ev.event);
         break;
       }
+
+      case "INpcArrivedAtHome": {
+        const rendered = renderController.get(ev.event.npcId);
+        rendered.dispose();
+        break;
+      }
+
+      case "INpcExploded": {
+        const rendered = renderController.get(ev.event.npcId);
+        rendered.dispose();
+        break;
+      }
     }
   });
 
   function dispose() {
+    // TODO: clean up render controller
+    // renderController.dispose();
+
     unsubscribeEvents();
-    disposers.forEach((d) => d());
   }
 
   return {
@@ -168,7 +200,7 @@ function createWanderingCube(
       if (moveTarget) {
         const diff = moveTarget.subtract(mesh.position);
         diff.y = 0;
-        if (diff.length() < 0.5) {
+        if (diff.length() < 0.25) {
           moveTarget = null;
           onArriveAtTarget();
         }
