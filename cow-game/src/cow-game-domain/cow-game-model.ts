@@ -33,6 +33,7 @@ export interface IModel {
     height: number;
     cells: ICell[];
   };
+  playerSpawn: IPosition,
   npcSpawnPositions: IPosition[];
   npcs: { home: IPosition }[];
   horsesSpawned: number;

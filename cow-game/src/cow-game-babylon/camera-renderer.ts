@@ -6,7 +6,12 @@ import { TopDownCameraInput } from "../reusable/babylon/top-down-camera-input";
 import { PanCameraInput } from "../reusable/babylon/pan-camera-input";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
 import { tap } from "../cow-game-domain/cow-game-commands";
-import { getMetadata, GroundPlane, vector3ToPosition } from "./babylon-helpers";
+import {
+  getMetadata,
+  GroundPlane,
+  positionToVector3,
+  vector3ToPosition,
+} from "./babylon-helpers";
 import { Tappable } from "../cow-game-domain/cow-game-model";
 
 export function createCameraRenderer(
@@ -67,6 +72,8 @@ export function createCameraRenderer(
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     switch (ev.event.type) {
       case "INewGameStarted": {
+        const { playerSpawn } = ev.event;
+        camera.setTarget(positionToVector3(playerSpawn));
         break;
       }
     }

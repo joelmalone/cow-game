@@ -3,6 +3,7 @@ import { IModel, IPosition } from "./cow-game-model";
 export interface INewGameStarted {
   type: "INewGameStarted";
   grid: IModel["grid"];
+  playerSpawn: IPosition;
   npcSpawns: IPosition[];
 }
 

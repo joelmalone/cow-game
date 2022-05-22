@@ -9,7 +9,7 @@ export function startNpcSpawnerBehaviour(
 ) {
   const token = setInterval(() => {
     gameController.enqueueCommand(spawnNpc());
-  }, 2500);
+  }, 10000);
 
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     // switch (ev.event.type) {

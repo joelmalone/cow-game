@@ -6,6 +6,7 @@ export function reduce(model: IModel, ev: Events): IModel {
     case "INewGameStarted": {
       return {
         grid: ev.grid,
+        playerSpawn: ev.playerSpawn,
         npcSpawnPositions: ev.npcSpawns,
         npcs: [],
         horsesSpawned: 0,
