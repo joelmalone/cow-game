@@ -13,6 +13,7 @@ import { createBabylonScene } from "./cow-game-babylon/babylon-scene";
 import { createGameController } from "./cow-game-domain/cow-game-controller";
 import { startNpcSpawnerBehaviour } from "./cow-game-domain/cow-game-behaviours";
 import { startNewGame } from "./cow-game-domain/cow-game-commands";
+import { CowGameUi } from "./cow-game-ui/cow-game-ui";
 
 const controller = createGameController();
 
@@ -34,9 +35,9 @@ async function createBabylonEngine(canvas: HTMLCanvasElement) {
     }
   });
 
-  controller.enqueueCommand(startNewGame(''))
+  controller.enqueueCommand(startNewGame(""));
 
-  const disposeSpawnNpcBehaviour = startNpcSpawnerBehaviour(controller)
+  const disposeSpawnNpcBehaviour = startNpcSpawnerBehaviour(controller);
 
   function dispose() {
     disposeSpawnNpcBehaviour();
@@ -51,4 +52,10 @@ if (!root) {
   throw new Error("Root element not found.");
 }
 
-render(<BabylonEngine engineFactory={createBabylonEngine} />, root);
+render(
+  <>
+    <BabylonEngine engineFactory={createBabylonEngine} />
+    <CowGameUi gameController={controller} />
+  </>,
+  root
+);

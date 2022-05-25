@@ -9,4 +9,9 @@ body {
 
 #root {
   height: 100%;
+  position: static;
+}
+
+#root > * {
+  position: absolute;
 }

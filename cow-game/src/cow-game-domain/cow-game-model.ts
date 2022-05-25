@@ -37,6 +37,7 @@ export interface IModel {
   playerSpawn: IPosition,
   npcSpawnPositions: IPosition[];
   npcs: { home: IPosition }[];
+  housesRemaining: number;
   horsesSpawned: number;
   housesLost: IPosition[];
   housesWon: IPosition[];

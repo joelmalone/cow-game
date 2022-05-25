@@ -11,6 +11,7 @@ export function reduce(model: IModel, ev: Events): IModel {
         playerSpawn: ev.playerSpawn,
         npcSpawnPositions: ev.npcSpawns,
         npcs: [],
+        housesRemaining: ev.grid.cells.filter((c) => c.house).length,
         horsesSpawned: 0,
         housesLost: [],
         housesWon: [],
@@ -40,6 +41,7 @@ export function reduce(model: IModel, ev: Events): IModel {
       const { homeAddress } = ev;
       return {
         ...model,
+        housesRemaining: model.housesRemaining - 1,
         housesLost: [...model.housesLost, homeAddress],
       };
     }
@@ -48,6 +50,7 @@ export function reduce(model: IModel, ev: Events): IModel {
       const { homeAddress } = ev;
       return {
         ...model,
+        housesRemaining: model.housesRemaining - 1,
         housesWon: [...model.housesWon, homeAddress],
       };
     }

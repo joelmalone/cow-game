@@ -105,6 +105,17 @@ export function createGridRenderer(
         }
         break;
       }
+
+      case "INpcExploded": {
+        const renderedHouse = houses.get(
+          `${ev.event.homeAddress.x},${ev.event.homeAddress.y}`
+        );
+        if (renderedHouse) {
+          // TODO: remove it from play, but don't explode it... do something uhhh else
+          renderedHouse.explode();
+        }
+        break;
+      }
     }
   });
 
