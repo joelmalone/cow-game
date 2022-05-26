@@ -1,10 +1,14 @@
 html {
   height: 100%;
+  /* Disable scrolling at the root level */
+  overflow: hidden;
 }
 
 body {
   margin: 0;
   height: 100%;
+  /* Disable scrolling at the root level */
+  overflow: hidden;
 }
 
 #root {

@@ -30,22 +30,22 @@ export function createCameraRenderer(
     scene
   );
   camera.setTarget(focus);
-  camera.fov = 0.1;
+  camera.fov = 0.05;
 
   // https://doc.babylonjs.com/divingDeeper/cameras/customizingCameraInputs
   camera.inputs.clear();
-  camera.inputs.add(new TopDownCameraInput());
-  camera.inputs.add(new PanCameraInput());
-  camera.inputs.addMouseWheel();
+  // camera.inputs.add(new TopDownCameraInput());
+  const panCameraInput = new PanCameraInput();
+  camera.inputs.add(panCameraInput);
 
-  // Attach the camera to the canvas; this prevents "scroll bounce" when we mouse wheel
+  // Attach the camera to the canvas, so dragging works
   camera.attachControl(canvas);
 
   // Only tap on things with a metadata.tappable value
   scene.pointerDownPredicate = (abstractMesh) =>
     !!getMetadata(abstractMesh)?.tappable;
   // Handle tap events to parse the tappable, or fallback to a ground tap
-  scene.onPointerDown = function (ev, pickInfo, type) {
+  panCameraInput.clickObservable.add(function onClick(pickInfo) {
     const { pickedPoint, pickedMesh } = pickInfo;
     const tappable = pickedPoint && getMetadata(pickedMesh)?.tappable;
     if (tappable) {
@@ -65,10 +65,10 @@ export function createCameraRenderer(
     const t = ray.intersectsPlane(GroundPlane);
     const hit = t && ray.origin.add(ray.direction.scale(t));
     if (hit) {
-      const position = vector3ToPosition(hit)
+      const position = vector3ToPosition(hit);
       gameController.enqueueCommand(tap("terrain", position));
     }
-  };
+  });
 
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     switch (ev.event.type) {
