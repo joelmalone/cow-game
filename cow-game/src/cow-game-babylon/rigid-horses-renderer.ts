@@ -67,10 +67,20 @@ export function createRigidHorseRenderer(
 
     // Attach the root to the clone bucket
     horseRoot.parent = cloneParent;
+
+    disposers.push(() => {
+      horseRoot.dispose();
+    });
   }
 
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     switch (ev.event.type) {
+      case "INewGameStarted": {
+        disposers.forEach((d) => d());
+        disposers.splice(0);
+        break;
+      }
+
       case "IHorseSpawned": {
         const { spawnPosition } = ev.event;
         spawnHorse(spawnPosition);
