@@ -60,6 +60,9 @@ export function createGridRenderer(
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     switch (ev.event.type) {
       case "INewGameStarted": {
+        disposers.forEach((d) => d());
+        disposers.splice(0)
+
         const { grid } = ev.event;
 
         for (var x = 0; x < grid.width; x++) {

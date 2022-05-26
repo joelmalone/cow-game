@@ -108,6 +108,11 @@ export function createNpcRenderer(
 
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     switch (ev.event.type) {
+      case "INewGameStarted": {
+        renderController.clear();
+        break;
+      }
+
       case "INpcSpawned": {
         renderController.add(ev.event);
         break;
@@ -194,9 +199,8 @@ function createWanderingCube(
   }
 
   async function brain() {
-    while (!disposed) {
+    do {
       await delay(Math.random() * 250 + 750);
-
       if (moveTarget) {
         const diff = moveTarget.subtract(mesh.position);
         diff.y = 0;
@@ -210,7 +214,7 @@ function createWanderingCube(
         const d = moveTarget.subtract(mesh.position);
         move(d);
       }
-    }
+    } while (!disposed);
   }
 
   brain();

@@ -26,6 +26,8 @@ export function createHorseRenderer(
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
     switch (ev.event.type) {
       case "INewGameStarted": {
+        horseRenderer?.resetForNewGame();
+
         const { playerSpawn } = ev.event;
         horseRenderer.teleportToPosition(playerSpawn);
         break;
@@ -214,6 +216,12 @@ function createPlayerHorseRenderer(
     walkTarget = position;
   }
 
+  function resetForNewGame() {
+    localVelocity.setAll(0);
+    teleportTo = null;
+    walkTarget = null;
+  }
+
   function dispose() {
     disposers.forEach((d) => d());
   }
@@ -221,6 +229,7 @@ function createPlayerHorseRenderer(
   return {
     teleportToPosition,
     setWalkTarget,
+    resetForNewGame,
     dispose,
   };
 }

@@ -1,5 +1,6 @@
 import { h, render } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
+import { startNewGame } from "../cow-game-domain/cow-game-commands";
 import { GameController } from "../cow-game-domain/cow-game-controller";
 import { IModel } from "../cow-game-domain/cow-game-model";
 
@@ -20,8 +21,12 @@ export function CowGameUi({
     return unsubscriber;
   }, [gameController]);
 
-  if(!model){
+  if (!model) {
     return null;
+  }
+
+  function onStartNewGame() {
+    gameController.enqueueCommand(startNewGame(""));
   }
 
   return (
@@ -30,6 +35,7 @@ export function CowGameUi({
       <p>Houses lost: {model.housesLost.length}</p>
       <p>Houses remaining: {model.housesRemaining}</p>
       <p>Horses spawned: {model.horsesSpawned}</p>
+      <button onClick={onStartNewGame}>Start new game</button>
     </div>
   );
 }
