@@ -39,15 +39,19 @@ export function createRendererController<
     return existingRenderer;
   }
 
-  function remove(key: TKey) {
-    if (!renderers.delete(key)) {
+  function removeAndDispose(key: TKey) {
+    const renderer = renderers.get(key);
+    if (!renderer) {
       throw new AppError("The key to remove was not found in the array.", {
         key,
       });
     }
+
+    renderers.delete(key);
+    renderer.dispose();
   }
 
-  function clear() {
+  function removeAndDisposeAll() {
     renderers.forEach((r) => r.dispose());
     renderers.clear();
   }
@@ -55,7 +59,7 @@ export function createRendererController<
   return {
     add,
     get,
-    remove,
-    clear,
+    removeAndDispose,
+    removeAndDisposeAll,
   };
 }
