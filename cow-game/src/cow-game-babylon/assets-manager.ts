@@ -25,6 +25,15 @@ export const HORSE_SCALE = 1 / 5.5;
 /** The scale to apply to the loaded house meshes. */
 export const HOUSE_SCALE = 3 / 2;
 
+/**
+ * The hitbox of the horse, based on the scaled-down mesh dimensions.
+ */
+export const HORSE_DIMENSIONS = {
+  length: 1,  //1.0320208163484352,
+  width: .25, //0.25662463042646877,
+  height: 1,  //0.8770817127699162
+}
+
 export const TextureAssets = {
   house1: (await import("./assets/HouseTexture1.png?url")).default,
   house2: (await import("./assets/HouseTexture2.png?url")).default,

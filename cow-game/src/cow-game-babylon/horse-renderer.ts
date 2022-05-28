@@ -10,7 +10,11 @@ import {
   positionToVector3,
   setMetadata,
 } from "./babylon-helpers";
-import { CowGameAssetsManager, HORSE_SCALE } from "./assets-manager";
+import {
+  CowGameAssetsManager,
+  HORSE_DIMENSIONS,
+  HORSE_SCALE,
+} from "./assets-manager";
 import { AppError } from "../reusable/app-errors";
 import { IPosition } from "../cow-game-domain/cow-game-model";
 
@@ -47,6 +51,7 @@ export function createHorseRenderer(
   }
 
   return {
+    horseRoot: horseRenderer.horseRoot,
     dispose,
   };
 }
@@ -60,6 +65,8 @@ function createPlayerHorseRenderer(
   var teleportTo: IPosition | null = null;
   var walkTarget: IPosition | null = null;
 
+  const horseRoot = createHorseRoot(scene);
+
   assetsManager.loadMesh("horse").then(({ loadedContainer }) => {
     const instantiated = loadedContainer.instantiateModelsToScene(
       // Keep the original animationGroup names
@@ -72,30 +79,6 @@ function createPlayerHorseRenderer(
     }
     // The horse mesh is 5.5 units horizontally from nose to butt, so scale it down to 1
     horseMesh.scaling.setAll(HORSE_SCALE);
-
-    // Get the horse mesh's bounds (including descendant meshes)
-    const bounds = horseMesh.getHierarchyBoundingVectors();
-    const length = bounds.max.z - bounds.min.z;
-    const width = bounds.max.x - bounds.min.x;
-    const height = bounds.max.y - bounds.min.y;
-
-    // Create a tappable mesh; we'l use this as the root
-    const horseRoot = MeshBuilder.CreateBox(
-      "Player horse",
-      { size: length * 0.8, width: width * 0.8, height: height * 0.8 },
-      scene
-    );
-    horseRoot.position.set(0, height * 0.5, 0);
-    horseRoot.isVisible = false;
-    // Tag the horse to be picked up by the "tap" subsystem
-    setMetadata(horseRoot, { tappable: "player" });
-
-    horseRoot.physicsImpostor = new PhysicsImpostor(
-      horseRoot,
-      PhysicsImpostor.BoxImpostor,
-      { mass: 0, restitution: 0.1 },
-      scene
-    );
 
     // Get the animations and begin playing them, but with 0 weight
     const idleAnimation = instantiated.animationGroups.find(
@@ -192,11 +175,13 @@ function createPlayerHorseRenderer(
     );
 
     // Move the horse
+    // TODO: this can be moved into the parent scope now, no need for teleportTo
     const teleportObservable = scene.onBeforeRenderObservable.add(() => {
       if (teleportTo) {
-        horseRoot.position = positionToVector3(teleportTo, height * 0.5).add(
-          GridMidpoint
-        );
+        horseRoot.position = positionToVector3(
+          teleportTo,
+          HORSE_DIMENSIONS.height * 0.5
+        ).add(GridMidpoint);
         teleportTo = null;
       }
     });
@@ -204,8 +189,10 @@ function createPlayerHorseRenderer(
       scene.onBeforeRenderObservable.remove(teleportObservable)
     );
 
+    // Set the parent
     horseMesh.setParent(horseRoot);
-    horseMesh.position.set(0, -height * 0.5, 0);
+    // Anchor at the bottom-middle
+    horseMesh.position.set(0, -HORSE_DIMENSIONS.height * 0.5, 0);
   });
 
   function teleportToPosition(position: IPosition) {
@@ -227,9 +214,35 @@ function createPlayerHorseRenderer(
   }
 
   return {
+    horseRoot,
     teleportToPosition,
     setWalkTarget,
     resetForNewGame,
     dispose,
   };
+}
+/**
+ * Creates a hitbox to act as the root player object. The mesh will be added later.
+ */
+function createHorseRoot(scene: Scene) {
+  const { length, width, height } = HORSE_DIMENSIONS;
+
+  const horseRoot = MeshBuilder.CreateBox(
+    "Player horse",
+    { size: length * 0.8, width: width * 0.8, height: height * 0.8 },
+    scene
+  );
+  horseRoot.position.set(0, height * 0.5, 0);
+  horseRoot.isVisible = false;
+  // Tag the horse to be picked up by the "tap" subsystem
+  setMetadata(horseRoot, { tappable: "player" });
+
+  horseRoot.physicsImpostor = new PhysicsImpostor(
+    horseRoot,
+    PhysicsImpostor.BoxImpostor,
+    { mass: 0, restitution: 0.1 },
+    scene
+  );
+
+  return horseRoot;
 }

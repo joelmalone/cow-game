@@ -57,29 +57,32 @@ export async function createBabylonScene(
     scene
   );
 
-  createRigidHorsesRenderer(scene, gameController, assetsManager);
-
   var light = new HemisphericLight("hemiLight", new Vector3(-2, 2, -1), scene);
 
-  const cameraRenderer = createCameraRenderer(canvas, scene, gameController);
+  const rigidHorsesRenderer = createRigidHorsesRenderer(scene, gameController, assetsManager);
 
-  const houseRenderer = createGridRenderer(
+  const gridRenderer = createGridRenderer(
     scene,
     gameController,
     assetsManager
   );
+
   const horseRenderer = createHorseRenderer(
     scene,
     gameController,
     assetsManager
   );
+
+  const cameraRenderer = createCameraRenderer(canvas, scene, gameController, horseRenderer.horseRoot);
+
   const npcRenderer = createNpcRenderer(scene, gameController, ground);
 
   function dispose() {
     npcRenderer.dispose();
     horseRenderer.dispose();
-    houseRenderer.dispose();
+    gridRenderer.dispose();
     cameraRenderer.dispose();
+    rigidHorsesRenderer.dispose();
     scene.dispose();
   }
 

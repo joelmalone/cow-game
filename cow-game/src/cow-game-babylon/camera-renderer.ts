@@ -13,33 +13,43 @@ import {
   vector3ToPosition,
 } from "./babylon-helpers";
 import { Tappable } from "../cow-game-domain/cow-game-model";
+import { Camera } from "@babylonjs/core/Cameras/camera";
+import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
+import { startFollowBehaviour } from "../reusable/babylon/follow-behaviour";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
 export function createCameraRenderer(
   canvas: HTMLCanvasElement,
   scene: Scene,
-  gameController: GameController
+  gameController: GameController,
+  playerTransformNode: TransformNode
 ) {
-  const cameraAngle = new Vector3(1, -1, 2);
-  const focus = new Vector3(0, 0, 0);
+  const cameraDirection = new Vector3(1, -1, 2);
   const cameraDistance = 100;
+  const cameraOffset = cameraDirection.scale(-cameraDistance);
 
-  // Parameters : name, position, scene
-  var camera = new UniversalCamera(
-    "UniversalCamera",
-    focus.subtract(cameraAngle.scale(cameraDistance)),
-    scene
-  );
-  camera.setTarget(focus);
+  var camera = new FreeCamera("Main camera", cameraOffset, scene);
+  camera.target = Vector3.Zero();
   camera.fov = 0.05;
 
   // https://doc.babylonjs.com/divingDeeper/cameras/customizingCameraInputs
   camera.inputs.clear();
-  // camera.inputs.add(new TopDownCameraInput());
   const panCameraInput = new PanCameraInput();
   camera.inputs.add(panCameraInput);
 
   // Attach the camera to the canvas, so dragging works
   camera.attachControl(canvas);
+
+  // Make the camera follow the player (but maintain relative position)
+  const cameraFollow = startFollowBehaviour(
+    scene,
+    camera,
+    playerTransformNode,
+    {
+      useOffset: true,
+      isPaused: () => panCameraInput.isDragging,
+    }
+  );
 
   // Only tap on things with a metadata.tappable value
   scene.pointerDownPredicate = (abstractMesh) =>
@@ -70,18 +80,8 @@ export function createCameraRenderer(
     }
   });
 
-  const unsubscribeEvents = gameController.subscribeEvents((ev) => {
-    switch (ev.event.type) {
-      case "INewGameStarted": {
-        const { playerSpawn } = ev.event;
-        camera.setTarget(positionToVector3(playerSpawn));
-        break;
-      }
-    }
-  });
-
   function dispose() {
-    unsubscribeEvents();
+    cameraFollow.dispose();
     camera.dispose();
   }
 
