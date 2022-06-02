@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "rm -rf dist && rm -rf ../docs && yarn build && cp -r dist ../docs && cp CNAME ../docs"
   },
   "dependencies": {
     "@babylonjs/core": "^5.9.0",
