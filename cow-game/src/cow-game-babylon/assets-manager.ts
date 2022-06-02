@@ -7,15 +7,24 @@ import { Scene } from "@babylonjs/core/scene";
 
 import { AppError } from "../reusable/app-errors";
 
+import House1Url from "./assets/House.glb?url"
+import House2Url from "./assets/House2.glb?url"
+import House3Url from "./assets/House3.glb?url"
+import House4Url from "./assets/House4.glb?url"
+import House5Url from "./assets/House5.glb?url"
+import StreetstraightUrl from "./assets/Street_Straight.glb?url"
+import Street4wayUrl from "./assets/Street_4Way.glb?url"
+import HorseUrl from "./assets/Horse.gltf?url"
+
 export const MeshAssets = {
-  house1: (await import("./assets/House.glb?url")).default,
-  house2: (await import("./assets/House2.glb?url")).default,
-  house3: (await import("./assets/House3.glb?url")).default,
-  house4: (await import("./assets/House4.glb?url")).default,
-  house5: (await import("./assets/House5.glb?url")).default,
-  streetStraight: (await import("./assets/Street_Straight.glb?url")).default,
-  street4Way: (await import("./assets/Street_4Way.glb?url")).default,
-  horse: (await import("./assets/Horse.gltf?url")).default,
+  house1: House1Url,
+  house2: House2Url,
+  house3: House3Url,
+  house4: House4Url,
+  house5: House5Url,
+  streetStraight: StreetstraightUrl,
+  street4Way: Street4wayUrl,
+  horse: HorseUrl,
 };
 
 // TODO: needing to expose this probably means we should handle post-processing in the asset manager
@@ -34,11 +43,16 @@ export const HORSE_DIMENSIONS = {
   height: 1,  //0.8770817127699162
 }
 
+import House1TextureURL from "./assets/HouseTexture1.png?url"
+import House2TextureURL from "./assets/HouseTexture2.png?url"
+import House3TextureURL from "./assets/HouseTexture3.png?url"
+import House4TextureURL from "./assets/HouseTexture4.png?url"
+
 export const TextureAssets = {
-  house1: (await import("./assets/HouseTexture1.png?url")).default,
-  house2: (await import("./assets/HouseTexture2.png?url")).default,
-  house3: (await import("./assets/HouseTexture3.png?url")).default,
-  house4: (await import("./assets/HouseTexture4.png?url")).default,
+  house1: House1TextureURL,
+  house2: House2TextureURL,
+  house3: House3TextureURL,
+  house4: House4TextureURL,
 };
 
 export type CowGameAssetsManager = ReturnType<
