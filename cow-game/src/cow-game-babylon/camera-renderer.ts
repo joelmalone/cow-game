@@ -52,7 +52,7 @@ export function createCameraRenderer(
   );
 
   // Only tap on things with a metadata.tappable value
-  scene.pointerDownPredicate = (abstractMesh) =>
+  scene.pointerUpPredicate = (abstractMesh) =>
     !!getMetadata(abstractMesh)?.tappable;
   // Handle tap events to parse the tappable, or fallback to a ground tap
   panCameraInput.clickObservable.add(function onClick(pickInfo) {
