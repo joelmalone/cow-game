@@ -12,7 +12,8 @@
     "@babylonjs/core": "^5.9.0",
     "@babylonjs/inspector": "^5.9.0",
     "cannon": "^0.6.2",
-    "preact": "^10.5.15"
+    "preact": "^10.5.15",
+    "ts-iter": "^1.1.0"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.1.5",

@@ -3,6 +3,14 @@ export interface IPosition {
   y: number;
 }
 
+export interface INpc {
+  id: number;
+  spawn: IPosition;
+  home: IPosition;
+  route: IPosition[];
+  lifespan: number;
+}
+
 export enum TerrainTypes {
   Grass,
   Street_Straight,
@@ -34,9 +42,9 @@ export interface IModel {
     height: number;
     cells: ICell[];
   };
-  playerSpawn: IPosition,
-  npcSpawnPositions: IPosition[];
-  npcs: { home: IPosition }[];
+  playerSpawn: IPosition;
+  npcsToSpawn: INpc[];
+  npcs: INpc[];
   housesRemaining: number;
   horsesSpawned: number;
   housesLost: IPosition[];

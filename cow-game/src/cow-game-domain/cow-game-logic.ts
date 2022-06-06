@@ -1,12 +1,19 @@
 import { AppError } from "../reusable/app-errors";
+import { shuffleArrayInPlace } from "../reusable/array-helpers";
 import {
   Facings,
   HouseTypesCount,
   ICell,
   IModel,
+  INpc,
   IPosition,
   TerrainTypes,
 } from "./cow-game-model";
+
+export const GameParams = {
+  npcsToSpawn: 5,
+  NpcLifespan: 60,
+};
 
 export function createGrid(): IModel["grid"] {
   const width = 7;
@@ -57,21 +64,33 @@ export function createGrid(): IModel["grid"] {
   };
 }
 
-export function* enumerateUnusedHouses(model: IModel) {
-  for (var y = 0; y < model.grid.height; y++) {
-    for (var x = 0; x < model.grid.width; x++) {
-      const isHouse = model.grid.cells[y * model.grid.width + x].house;
-      if (!isHouse) {
-        continue;
+export function* enumerateHabitableHouses(grid: IModel["grid"]) {
+  for (var y = 0; y < grid.height; y++) {
+    for (var x = 0; x < grid.width; x++) {
+      const isHouse = grid.cells[y * grid.width + x].house;
+      if (isHouse) {
+        yield { x, y };
       }
-
-      const occupado = model.npcs.some((i) => i.home.x === x && i.home.y === y);
-      if (occupado) {
-        continue;
-      }
-
-      yield { x, y };
     }
+  }
+}
+
+export function* generateNpcs(
+  grid: IModel["grid"],
+  homes: IPosition[],
+  spawnpoints: IPosition[]
+) {
+  for (var i = 0; i < homes.length; i++) {
+    const spawn = spawnpoints[i % spawnpoints.length];
+    const home = homes[i];
+    const route = findPath(grid, spawn, home);
+    yield {
+      id: i,
+      home,
+      lifespan: GameParams.NpcLifespan,
+      spawn,
+      route,
+    };
   }
 }
 

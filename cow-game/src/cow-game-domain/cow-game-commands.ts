@@ -1,6 +1,16 @@
-import type { Events } from "./cow-game-events";
-import { createGrid, enumerateUnusedHouses, findPath } from "./cow-game-logic";
-import type { IModel, IPosition, Tappable } from "./cow-game-model";
+import { iter } from "ts-iter";
+
+import { AppError } from "../reusable/app-errors";
+import { shuffleArrayInPlace } from "../reusable/array-helpers";
+import type { Events, INewGameStarted } from "./cow-game-events";
+import {
+  createGrid,
+  enumerateHabitableHouses,
+  findPath,
+  GameParams,
+  generateNpcs,
+} from "./cow-game-logic";
+import type { IModel, INpc, IPosition, Tappable } from "./cow-game-model";
 
 export type Command = (
   modelContainer: { readonly model: IModel },
@@ -8,17 +18,31 @@ export type Command = (
 ) => void;
 
 export function startNewGame(seed: string): Command {
+  const grid = createGrid();
+
+  const unusedHouses = Array.from(enumerateHabitableHouses(grid));
+  if (unusedHouses.length < GameParams.npcsToSpawn) {
+    throw new AppError("There are less houses on the grid than NPCs to spawn.");
+  }
+  shuffleArrayInPlace(unusedHouses);
+
+  const npcSpawnpoints = [
+    { x: -1, y: 0 },
+    { x: 3, y: -1 },
+    { x: -1, y: 3 },
+  ];
+
+  const npcsToSpawn = iter(generateNpcs(grid, unusedHouses, npcSpawnpoints))
+    .take(GameParams.npcsToSpawn)
+    .toArray();
+
   return ({ model }, emitEvent) => {
     emitEvent({
       type: "INewGameStarted",
       npcLifespan: 60,
-      grid: createGrid(),
+      grid,
       playerSpawn: { x: 3, y: 3 },
-      npcSpawns: [
-        { x: -1, y: 0 },
-        { x: 3, y: -1 },
-        { x: -1, y: 3 },
-      ],
+      npcsToSpawn,
     });
   };
 }
@@ -40,46 +64,38 @@ export function tap(tappable: Tappable, position: IPosition): Command {
 
 export function spawnNpc(): Command {
   return function spawnNpc({ model }, emitEvent) {
-    const npcId = model.npcs.length;
-
-    // Spawn at one of the spawn positions
-    const spawnPosition =
-      model.npcSpawnPositions[
-        Math.trunc(Math.random() * model.npcSpawnPositions.length)
-      ];
-
-    // Pick an unused house
-    const unusedHouses = Array.from(enumerateUnusedHouses(model));
-    if (!unusedHouses.length) {
-      return;
+    const alreadySpawned = model.npcs.length;
+    const totalAvailable = model.npcsToSpawn.length;
+    if (alreadySpawned >= totalAvailable) {
+      throw new AppError("There are no more NPCs left to spawn!");
     }
+    const npc = model.npcsToSpawn[alreadySpawned];
 
-    const homeAddress =
-      unusedHouses[Math.trunc(Math.random() * unusedHouses.length)];
-    const route = findPath(model.grid, spawnPosition, homeAddress);
     emitEvent({
       type: "INpcSpawned",
-      npcId,
-      route,
-      lifespan: model.npcLifespan,
+      npc,
     });
   };
 }
 
-export function notifyNpcArrivedAtHome(
-  npcId: number,
-  homeAddress: IPosition
-): Command {
+export function notifyNpcArrivedAtHome(npcId: number): Command {
   return function notifyNpcArrivedAtHome({ model }, emitEvent) {
-    emitEvent({ type: "INpcArrivedAtHome", npcId, homeAddress });
+    const npc = model.npcs[npcId];
+    if (!npc) {
+      throw new AppError("Invalid NPC ID.");
+    }
+
+    emitEvent({ type: "INpcArrivedAtHome", npc });
   };
 }
 
-export function notifyNpcExploded(
-  npcId: number,
-  homeAddress: IPosition
-): Command {
+export function notifyNpcExploded(npcId: number): Command {
   return function notifyNpcExploded({ model }, emitEvent) {
-    emitEvent({ type: "INpcExploded", npcId, homeAddress });
+    const npc = model.npcs[npcId];
+    if (!npc) {
+      throw new AppError("Invalid NPC ID.");
+    }
+
+    emitEvent({ type: "INpcExploded", npc });
   };
 }

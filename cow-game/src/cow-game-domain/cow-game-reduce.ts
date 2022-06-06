@@ -9,7 +9,7 @@ export function reduce(model: IModel, ev: Events): IModel {
         npcLifespan: ev.npcLifespan,
         grid: ev.grid,
         playerSpawn: ev.playerSpawn,
-        npcSpawnPositions: ev.npcSpawns,
+        npcsToSpawn: ev.npcsToSpawn,
         npcs: [],
         housesRemaining: ev.grid.cells.filter((c) => c.house).length,
         horsesSpawned: 0,
@@ -23,10 +23,11 @@ export function reduce(model: IModel, ev: Events): IModel {
     }
 
     case "INpcSpawned": {
-      const npc = { home: ev.route[ev.route.length - 1] };
+      const { npc } = ev;
       return {
         ...model,
-        npcs: [npc, ...model.npcs],
+        npcsToSpawn: model.npcsToSpawn.filter(i => i.id !== npc.id),
+        npcs: model.npcs.concat(npc),
       };
     }
 
@@ -38,20 +39,20 @@ export function reduce(model: IModel, ev: Events): IModel {
     }
 
     case "INpcArrivedAtHome": {
-      const { homeAddress } = ev;
+      const { npc } = ev;
       return {
         ...model,
         housesRemaining: model.housesRemaining - 1,
-        housesLost: [...model.housesLost, homeAddress],
+        housesLost: [...model.housesLost, npc.home],
       };
     }
 
     case "INpcExploded": {
-      const { homeAddress } = ev;
+      const { npc } = ev;
       return {
         ...model,
         housesRemaining: model.housesRemaining - 1,
-        housesWon: [...model.housesWon, homeAddress],
+        housesWon: [...model.housesWon, npc.home],
       };
     }
   }

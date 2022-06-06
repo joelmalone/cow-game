@@ -47,13 +47,13 @@ export function createNpcRenderer(
    */
   function spawnNewNpc(npcSpawnedEvent: INpcSpawned) {
     /**
-     * Called when the NPC just moved 9they move in bursts).
+     * Called when the NPC just moved (they move in bursts).
      */
     function onNpcMoved(position: Vector3) {
       spawnDebugLine(
         scene,
         position,
-        ...npcSpawnedEvent.route
+        ...npcSpawnedEvent.npc.route
           .slice(routeCounter)
           .map((p) => positionToVector3(p).add(GridMidpoint))
       );
@@ -66,18 +66,17 @@ export function createNpcRenderer(
      */
     function onArrivedAtTarget() {
       ++routeCounter;
-      if (routeCounter >= npcSpawnedEvent.route.length) {
+      if (routeCounter >= npcSpawnedEvent.npc.route.length) {
         // Arrived at home!
         console.debug(`An npc has arrived at home!`, npcSpawnedEvent);
         gameController.enqueueCommand(
           notifyNpcArrivedAtHome(
-            npcSpawnedEvent.npcId,
-            npcSpawnedEvent.route[npcSpawnedEvent.route.length - 1]
+            npcSpawnedEvent.npc.id
           )
         );
       } else {
         cube.setMoveTarget(
-          positionToVector3(npcSpawnedEvent.route[routeCounter]).add(
+          positionToVector3(npcSpawnedEvent.npc.route[routeCounter]).add(
             GridMidpoint
           )
         );
@@ -86,7 +85,7 @@ export function createNpcRenderer(
 
     const cube = createWanderingCube(
       scene,
-      positionToVector3(npcSpawnedEvent.route[0], 2).add(GridMidpoint),
+      positionToVector3(npcSpawnedEvent.npc.route[0], 2).add(GridMidpoint),
       onNpcMoved,
       onArrivedAtTarget
     );
@@ -95,11 +94,10 @@ export function createNpcRenderer(
     const timeout = setTimeout(() => {
       gameController.enqueueCommand(
         notifyNpcExploded(
-          npcSpawnedEvent.npcId,
-          npcSpawnedEvent.route[npcSpawnedEvent.route.length - 1]
+          npcSpawnedEvent.npc.id
         )
       );
-    }, npcSpawnedEvent.lifespan * 1000);
+    }, npcSpawnedEvent.npc.lifespan * 1000);
 
     return {
       ...cube,
@@ -111,7 +109,7 @@ export function createNpcRenderer(
   }
 
   const renderController = createRendererController(
-    (npcSpawnedEvent: INpcSpawned) => npcSpawnedEvent.npcId,
+    (npcSpawnedEvent: INpcSpawned) => npcSpawnedEvent.npc.id,
     spawnNewNpc
   );
 
@@ -128,13 +126,13 @@ export function createNpcRenderer(
       }
 
       case "INpcArrivedAtHome": {
-        const rendered = renderController.get(ev.event.npcId);
+        const rendered = renderController.get(ev.event.npc.id);
         rendered.dispose();
         break;
       }
 
       case "INpcExploded": {
-        const rendered = renderController.get(ev.event.npcId);
+        const rendered = renderController.get(ev.event.npc.id);
         rendered.dispose();
         break;
       }
@@ -209,7 +207,7 @@ function createWanderingCube(
 
   async function brain() {
     do {
-      await delay(Math.random() * 250 + 750);
+      await delay(Math.random() * 2000 + 1000);
 
       if (moveTarget) {
         const diff = moveTarget.subtract(mesh.position);
@@ -257,5 +255,5 @@ function spawnDebugLine(scene: Scene, ...points: Vector3[]) {
   debugLine.parent = parent;
   setTimeout(() => {
     debugLine.dispose();
-  }, 500);
+  }, 2500);
 }

@@ -101,7 +101,7 @@ export function createGridRenderer(
 
       case "INpcArrivedAtHome": {
         const renderedHouse = houses.get(
-          `${ev.event.homeAddress.x},${ev.event.homeAddress.y}`
+          `${ev.event.npc.home.x},${ev.event.npc.home.y}`
         );
         if (renderedHouse) {
           renderedHouse.explode();
@@ -111,7 +111,7 @@ export function createGridRenderer(
 
       case "INpcExploded": {
         const renderedHouse = houses.get(
-          `${ev.event.homeAddress.x},${ev.event.homeAddress.y}`
+          `${ev.event.npc.home.x},${ev.event.npc.home.y}`
         );
         if (renderedHouse) {
           // TODO: remove it from play, but don't explode it... do something uhhh else
