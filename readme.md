@@ -12,6 +12,8 @@ I challenge you to play it and let me know if I hit the mark!
 
 The amazingly good 3d models are courtesy of Quaternius, freely available from his website, [quaternius.com](https://quaternius.com/).
 
+Sheep bleats are by [Lamoot via OpenGameArt](https://opengameart.org/content/sheep-sound-bleats-yo-frankie).
+
 ## Tech
 
 The website is an SPA developed with [Preact](https://preactjs.com/).

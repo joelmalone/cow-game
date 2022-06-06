@@ -4,17 +4,18 @@ import {
   ContainerAssetTask,
 } from "@babylonjs/core/Misc/assetsManager";
 import { Scene } from "@babylonjs/core/scene";
+import { Sound } from "@babylonjs/core/Audio/sound";
 
 import { AppError } from "../reusable/app-errors";
 
-import House1Url from "./assets/House.glb?url"
-import House2Url from "./assets/House2.glb?url"
-import House3Url from "./assets/House3.glb?url"
-import House4Url from "./assets/House4.glb?url"
-import House5Url from "./assets/House5.glb?url"
-import StreetstraightUrl from "./assets/Street_Straight.glb?url"
-import Street4wayUrl from "./assets/Street_4Way.glb?url"
-import HorseUrl from "./assets/Horse.gltf?url"
+import House1Url from "./assets/House.glb?url";
+import House2Url from "./assets/House2.glb?url";
+import House3Url from "./assets/House3.glb?url";
+import House4Url from "./assets/House4.glb?url";
+import House5Url from "./assets/House5.glb?url";
+import StreetstraightUrl from "./assets/Street_Straight.glb?url";
+import Street4wayUrl from "./assets/Street_4Way.glb?url";
+import HorseUrl from "./assets/Horse.gltf?url";
 
 export const MeshAssets = {
   house1: House1Url,
@@ -38,21 +39,33 @@ export const HOUSE_SCALE = 3 / 2;
  * The hitbox of the horse, based on the scaled-down mesh dimensions.
  */
 export const HORSE_DIMENSIONS = {
-  length: 1,  //1.0320208163484352,
-  width: .25, //0.25662463042646877,
-  height: 1,  //0.8770817127699162
-}
+  length: 1, //1.0320208163484352,
+  width: 0.25, //0.25662463042646877,
+  height: 1, //0.8770817127699162
+};
 
-import House1TextureURL from "./assets/HouseTexture1.png?url"
-import House2TextureURL from "./assets/HouseTexture2.png?url"
-import House3TextureURL from "./assets/HouseTexture3.png?url"
-import House4TextureURL from "./assets/HouseTexture4.png?url"
+import House1TextureURL from "./assets/HouseTexture1.png?url";
+import House2TextureURL from "./assets/HouseTexture2.png?url";
+import House3TextureURL from "./assets/HouseTexture3.png?url";
+import House4TextureURL from "./assets/HouseTexture4.png?url";
 
 export const TextureAssets = {
   house1: House1TextureURL,
   house2: House2TextureURL,
   house3: House3TextureURL,
   house4: House4TextureURL,
+};
+
+import Sheep1URL from "./assets/sheep1.flac?url";
+import Sheep2URL from "./assets/sheep2.flac?url";
+import SheepBleetURL from "./assets/sheepBleet.flac?url";
+import SheepHitURL from "./assets/sheepHit.flac?url";
+
+export const SoundAssets = {
+  sheep1: Sheep1URL,
+  sheep2: Sheep2URL,
+  sheepBleet: SheepBleetURL,
+  sheepHit: SheepHitURL,
 };
 
 export type CowGameAssetsManager = ReturnType<
@@ -160,6 +173,44 @@ export function createCowGameAssetsManager(scene: Scene) {
     });
   }
 
+  const sounds = new Map<keyof typeof SoundAssets, Promise<Sound>>();
+  for (const key in SoundAssets) {
+    const url = SoundAssets[key as keyof typeof SoundAssets];
+
+    const promise = new Promise<Sound>((resolve, reject) => {
+      const task = assetsManager.addBinaryFileTask(`Load sound ${key}`, url);
+      task.onError = (t, err) => {
+        if (!disposed) {
+          reject(err);
+        }
+      };
+      task.onSuccess = (t) => {
+        if (!disposed) {
+          new Sound(key, t.data, undefined, function r(this: Sound) {
+            resolve(this);
+          },{
+            spatialSound: true,
+          });
+        }
+      };
+    });
+
+    sounds.set(key as any, promise);
+  }
+
+  function loadSounds(
+    ...assets: (keyof typeof SoundAssets)[]
+  ): Promise<Sound>[] {
+    return assets.map((asset) => {
+      const result = sounds.get(asset);
+      if (!result) {
+        throw new AppError("The asset was not found.");
+      }
+
+      return result;
+    });
+  }
+
   function dispose() {
     disposed = true;
     assetsManager.reset();
@@ -178,6 +229,8 @@ export function createCowGameAssetsManager(scene: Scene) {
     loadMesh: (asset: keyof typeof MeshAssets) => loadMeshes(asset)[0],
     loadTextures,
     loadTexture: (asset: keyof typeof TextureAssets) => loadTextures(asset)[0],
+    loadSounds,
+    loadSound: (asset: keyof typeof SoundAssets) => loadSounds(asset)[0],
     dispose,
   };
 }

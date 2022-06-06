@@ -72,6 +72,11 @@ export async function createBabylonScene(
     gameController,
     assetsManager
   );
+  // Use the player horse as the "ears" for spatial sound
+  scene.audioListenerPositionProvider = () => {
+    return horseRenderer.horseRoot.absolutePosition
+  };
+  
 
   const cameraRenderer = createCameraRenderer(canvas, scene, gameController, horseRenderer.horseRoot);
 

@@ -24,10 +24,20 @@ export function createRigidHorseRenderer(
       return loadedContainer;
     });
 
+  const baaPromises = assetsManager.loadSounds(
+    "sheep1",
+    "sheep2",
+    "sheepBleet",
+    "sheepHit"
+  );
+
   const cloneParent = new TransformNode(createRigidHorseRenderer.name);
 
   async function spawnHorse(position: IPosition) {
-    const horseTemplate = await horseTemplatePromise;
+    const [horseTemplate, ...baaSounds] = await Promise.all([
+      horseTemplatePromise,
+      ...baaPromises,
+    ]);
 
     const instantiated = horseTemplate.instantiateModelsToScene();
 
@@ -67,6 +77,16 @@ export function createRigidHorseRenderer(
 
     // Attach the root to the clone bucket
     horseRoot.parent = cloneParent;
+
+    // Attach the baaaaa
+    const baaSound = baaSounds[Math.trunc(Math.random() * baaSounds.length)];
+    const baaClone = baaSound.clone();
+    if (baaClone) {
+      baaClone.attachToMesh(horseRoot);
+      baaClone.play();
+    } else {
+      console.warn("Unable to clone a sound.", baaSound);
+    }
 
     disposers.push(() => {
       horseRoot.dispose();
