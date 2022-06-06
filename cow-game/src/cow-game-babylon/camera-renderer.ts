@@ -30,7 +30,7 @@ export function createCameraRenderer(
 
   var camera = new FreeCamera("Main camera", cameraOffset, scene);
   camera.target = Vector3.Zero();
-  camera.fov = 0.05;
+  camera.fov = 0.025;
 
   // https://doc.babylonjs.com/divingDeeper/cameras/customizingCameraInputs
   camera.inputs.clear();
@@ -48,6 +48,7 @@ export function createCameraRenderer(
     {
       useOffset: true,
       isPaused: () => panCameraInput.isDragging,
+      aggressiveness: 3,
     }
   );
 

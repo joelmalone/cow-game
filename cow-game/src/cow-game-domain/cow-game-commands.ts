@@ -64,12 +64,10 @@ export function tap(tappable: Tappable, position: IPosition): Command {
 
 export function spawnNpc(): Command {
   return function spawnNpc({ model }, emitEvent) {
-    const alreadySpawned = model.npcs.length;
-    const totalAvailable = model.npcsToSpawn.length;
-    if (alreadySpawned >= totalAvailable) {
+    if (model.npcsToSpawn.length === 0) {
       throw new AppError("There are no more NPCs left to spawn!");
     }
-    const npc = model.npcsToSpawn[alreadySpawned];
+    const npc = model.npcsToSpawn[0];
 
     emitEvent({
       type: "INpcSpawned",
