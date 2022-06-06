@@ -177,6 +177,7 @@ export function createCowGameAssetsManager(scene: Scene) {
   for (const key in SoundAssets) {
     const url = SoundAssets[key as keyof typeof SoundAssets];
 
+    // https://doc.babylonjs.com/divingDeeper/audio/playingSoundsMusic
     const promise = new Promise<Sound>((resolve, reject) => {
       const task = assetsManager.addBinaryFileTask(`Load sound ${key}`, url);
       task.onError = (t, err) => {
