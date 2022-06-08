@@ -56,12 +56,12 @@ export const TextureAssets = {
   house4: House4TextureURL,
 };
 
-import Sheep1URL from "./assets/sheep1.flac?url";
-import Sheep2URL from "./assets/sheep2.flac?url";
-import SheepBleetURL from "./assets/sheepBleet.flac?url";
-import SheepHitURL from "./assets/sheepHit.flac?url";
-import Gallop from "./assets/564628__d4xx__single-horse-galopp.wav?url";
-import Skid from "./assets/217542__medartimus__car-breaking-skid-01.ogg?url";
+import Sheep1URL from "./assets/sheep1.mp3?url";
+import Sheep2URL from "./assets/sheep2.mp3?url";
+import SheepBleetURL from "./assets/sheepBleet.mp3?url";
+import SheepHitURL from "./assets/sheepHit.mp3?url";
+import Gallop from "./assets/564628__d4xx__single-horse-galopp.mp3?url";
+import Skid from "./assets/217542__medartimus__car-breaking-skid-01.mp3?url";
 
 export const SoundAssets = {
   sheep1: Sheep1URL,
