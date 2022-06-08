@@ -24,7 +24,7 @@ export function createRigidHorseRenderer(
       return loadedContainer;
     });
 
-  const baaPromises = assetsManager.loadSounds(
+  const baaPromise = assetsManager.loadSounds(
     "sheep1",
     "sheep2",
     "sheepBleet",
@@ -34,10 +34,8 @@ export function createRigidHorseRenderer(
   const cloneParent = new TransformNode(createRigidHorseRenderer.name);
 
   async function spawnHorse(position: IPosition) {
-    const [horseTemplate, ...baaSounds] = await Promise.all([
-      horseTemplatePromise,
-      ...baaPromises,
-    ]);
+    const horseTemplate = await horseTemplatePromise;
+    const baaSounds = await baaPromise;
 
     const instantiated = horseTemplate.instantiateModelsToScene();
 

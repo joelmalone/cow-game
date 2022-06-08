@@ -60,12 +60,16 @@ import Sheep1URL from "./assets/sheep1.flac?url";
 import Sheep2URL from "./assets/sheep2.flac?url";
 import SheepBleetURL from "./assets/sheepBleet.flac?url";
 import SheepHitURL from "./assets/sheepHit.flac?url";
+import Gallop from "./assets/564628__d4xx__single-horse-galopp.wav?url";
+import Skid from "./assets/217542__medartimus__car-breaking-skid-01.ogg?url";
 
 export const SoundAssets = {
   sheep1: Sheep1URL,
   sheep2: Sheep2URL,
   sheepBleet: SheepBleetURL,
   sheepHit: SheepHitURL,
+  gallop: Gallop,
+  skid: Skid,
 };
 
 export type CowGameAssetsManager = ReturnType<
@@ -187,11 +191,17 @@ export function createCowGameAssetsManager(scene: Scene) {
       };
       task.onSuccess = (t) => {
         if (!disposed) {
-          new Sound(key, t.data, undefined, function r(this: Sound) {
-            resolve(this);
-          },{
-            spatialSound: true,
-          });
+          new Sound(
+            key,
+            t.data,
+            undefined,
+            function r(this: Sound) {
+              resolve(this);
+            },
+            {
+              spatialSound: true,
+            }
+          );
         }
       };
     });
@@ -201,15 +211,17 @@ export function createCowGameAssetsManager(scene: Scene) {
 
   function loadSounds(
     ...assets: (keyof typeof SoundAssets)[]
-  ): Promise<Sound>[] {
-    return assets.map((asset) => {
-      const result = sounds.get(asset);
-      if (!result) {
-        throw new AppError("The asset was not found.");
-      }
+  ): Promise<Sound[]> {
+    return Promise.all(
+      assets.map((asset) => {
+        const result = sounds.get(asset);
+        if (!result) {
+          throw new AppError("The asset was not found.");
+        }
 
-      return result;
-    });
+        return result;
+      })
+    );
   }
 
   function dispose() {
@@ -231,7 +243,7 @@ export function createCowGameAssetsManager(scene: Scene) {
     loadTextures,
     loadTexture: (asset: keyof typeof TextureAssets) => loadTextures(asset)[0],
     loadSounds,
-    loadSound: (asset: keyof typeof SoundAssets) => loadSounds(asset)[0],
+    loadSound:async (asset: keyof typeof SoundAssets) => (await loadSounds(asset))[0],
     dispose,
   };
 }

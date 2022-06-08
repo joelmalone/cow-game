@@ -67,6 +67,25 @@ function createPlayerHorseRenderer(
 
   const horseRoot = createHorseRoot(scene);
 
+  assetsManager.loadSounds("gallop", 'skid').then(([gallopSound,skidSound]) => {
+    gallopSound.attachToMesh(horseRoot);
+    gallopSound.loop = true;
+    skidSound.attachToMesh(horseRoot);
+
+    const interval = setInterval(() => {
+      const isMoving = localVelocity.lengthSquared() > 0.000001;
+      const isPlaying = gallopSound.isPlaying;
+      if (isMoving && !isPlaying) {
+        gallopSound.play();
+      } else if (isPlaying && !isMoving) {
+        gallopSound.stop();
+        skidSound.updateOptions({})
+        skidSound.play()
+      }
+    }, 500);
+    disposers.push(() => clearInterval(interval));
+  });
+
   assetsManager.loadMesh("horse").then(({ loadedContainer }) => {
     const instantiated = loadedContainer.instantiateModelsToScene(
       // Keep the original animationGroup names
