@@ -1,7 +1,10 @@
 html {
   height: 100%;
-  /* Disable scrolling at the root level */
-  overflow: hidden;
+  /* 
+  Disable finger scrolling and panning
+  https://stackoverflow.com/a/60516252/246901
+  */
+  touch-action: pan-x pan-y;
 }
 
 body {
@@ -23,4 +26,9 @@ body {
 button {
   padding: 1rem;
   font-size: 1.25rem;
+  /*
+  Disable double-tap-zoom
+  https://stackoverflow.com/a/47131647/246901
+  */
+  touch-action: none;
 }

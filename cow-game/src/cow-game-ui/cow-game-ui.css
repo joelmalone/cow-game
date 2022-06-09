@@ -9,4 +9,9 @@
   width: 100%;
   text-align: center;
   padding: 1rem;
+  pointer-events: none;
+}
+
+.bottom-panel > * {
+  pointer-events: initial;
 }
