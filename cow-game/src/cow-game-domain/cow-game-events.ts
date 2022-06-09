@@ -15,7 +15,6 @@ export interface IDestinationUpdated {
 
 export interface IHorseSpawned {
   type: "IHorseSpawned";
-  spawnPosition: IPosition;
 }
 
 export interface INpcSpawned {

@@ -1,6 +1,6 @@
 import { h, render } from "preact";
 import { useCallback, useEffect, useState } from "preact/hooks";
-import { startNewGame } from "../cow-game-domain/cow-game-commands";
+import { spawnHorse, startNewGame } from "../cow-game-domain/cow-game-commands";
 import { GameController } from "../cow-game-domain/cow-game-controller";
 import { IModel } from "../cow-game-domain/cow-game-model";
 
@@ -29,7 +29,12 @@ export function CowGameUi({
     gameController.enqueueCommand(startNewGame(""));
   }
 
+  function onClickSpawnHorse() {
+    gameController.enqueueCommand(spawnHorse());
+  }
+
   return (
+    <>
     <div class="cow-game-ui">
       <p>Houses won: {model.housesWon.length}</p>
       <p>Houses lost: {model.housesLost.length}</p>
@@ -37,5 +42,9 @@ export function CowGameUi({
       <p>Horses spawned: {model.horsesSpawned}</p>
       <button onClick={onStartNewGame}>Start new game</button>
     </div>
+    <div class="bottom-panel">
+      <button onClick={onClickSpawnHorse}>HORSE ME</button>
+    </div>
+    </>
   );
 }

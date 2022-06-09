@@ -17,7 +17,7 @@ window.CANNON = CANNON;
 import type { GameController } from "../cow-game-domain/cow-game-controller";
 import { createHorseRenderer } from "./horse-renderer";
 import { createCameraRenderer } from "./camera-renderer";
-import { createRigidHorseRenderer as createRigidHorsesRenderer } from "./rigid-horses-renderer";
+import { createRigidHorsesRenderer } from "./rigid-horses-renderer";
 import { createNpcRenderer } from "./npc-renderer";
 import { createCowGameAssetsManager } from "./assets-manager";
 import { createGridRenderer } from "./grid-renderer";
@@ -59,13 +59,7 @@ export async function createBabylonScene(
 
   var light = new HemisphericLight("hemiLight", new Vector3(-2, 2, -1), scene);
 
-  const rigidHorsesRenderer = createRigidHorsesRenderer(scene, gameController, assetsManager);
-
-  const gridRenderer = createGridRenderer(
-    scene,
-    gameController,
-    assetsManager
-  );
+  const gridRenderer = createGridRenderer(scene, gameController, assetsManager);
 
   const horseRenderer = createHorseRenderer(
     scene,
@@ -74,11 +68,22 @@ export async function createBabylonScene(
   );
   // Use the player horse as the "ears" for spatial sound
   scene.audioListenerPositionProvider = () => {
-    return horseRenderer.horseRoot.absolutePosition
+    return horseRenderer.horseRoot.absolutePosition;
   };
-  
 
-  const cameraRenderer = createCameraRenderer(canvas, scene, gameController, horseRenderer.horseRoot);
+  const rigidHorsesRenderer = createRigidHorsesRenderer(
+    scene,
+    gameController,
+    assetsManager,
+    horseRenderer.horseRoot
+  );
+
+  const cameraRenderer = createCameraRenderer(
+    canvas,
+    scene,
+    gameController,
+    horseRenderer.horseRoot
+  );
 
   const npcRenderer = createNpcRenderer(scene, gameController, ground);
 

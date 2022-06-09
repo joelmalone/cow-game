@@ -50,15 +50,17 @@ export function startNewGame(seed: string): Command {
 export function tap(tappable: Tappable, position: IPosition): Command {
   return function tap({ model }, emitEvent) {
     switch (tappable) {
-      case "player": {
-        emitEvent({ type: "IHorseSpawned", spawnPosition: position });
-        break;
-      }
       case "terrain": {
         emitEvent({ type: "IDestinationUpdated", position });
         break;
       }
     }
+  };
+}
+
+export function spawnHorse(): Command {
+  return function tap({ model }, emitEvent) {
+    emitEvent({ type: "IHorseSpawned" });
   };
 }
 

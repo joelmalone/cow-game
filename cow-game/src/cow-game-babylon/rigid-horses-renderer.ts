@@ -7,13 +7,14 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Disposer } from "../reusable/disposable";
 import type { GameController } from "../cow-game-domain/cow-game-controller";
 import { IPosition } from "../cow-game-domain/cow-game-model";
-import { positionToVector3 } from "./babylon-helpers";
+import { positionToVector3, vector3ToPosition } from "./babylon-helpers";
 import { CowGameAssetsManager, HORSE_SCALE } from "./assets-manager";
 
-export function createRigidHorseRenderer(
+export function createRigidHorsesRenderer(
   scene: Scene,
   gameController: GameController,
-  assetsManager: CowGameAssetsManager
+  assetsManager: CowGameAssetsManager,
+  playerRootMesh: TransformNode
 ) {
   const disposers: Disposer[] = [];
 
@@ -31,9 +32,9 @@ export function createRigidHorseRenderer(
     "sheepHit"
   );
 
-  const cloneParent = new TransformNode(createRigidHorseRenderer.name);
+  const cloneParent = new TransformNode(createRigidHorsesRenderer.name);
 
-  async function spawnHorse(position: IPosition) {
+  async function spawnRigidHorse(position: IPosition) {
     const horseTemplate = await horseTemplatePromise;
     const baaSounds = await baaPromise;
 
@@ -100,8 +101,10 @@ export function createRigidHorseRenderer(
       }
 
       case "IHorseSpawned": {
-        const { spawnPosition } = ev.event;
-        spawnHorse(spawnPosition);
+        const spawnPosition = vector3ToPosition(
+          playerRootMesh.getAbsolutePosition()
+        );
+        spawnRigidHorse(spawnPosition);
         break;
       }
     }
