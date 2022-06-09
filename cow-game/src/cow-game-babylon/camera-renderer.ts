@@ -41,13 +41,19 @@ export function createCameraRenderer(
   camera.attachControl(canvas);
 
   // Make the camera follow the player (but maintain relative position)
+  var lastDragTime = 0;
   const cameraFollow = startFollowBehaviour(
     scene,
     camera,
     playerTransformNode,
     {
       useOffset: true,
-      isPaused: () => panCameraInput.isDragging,
+      isPaused: () => {
+        if (panCameraInput.isDragging) {
+          lastDragTime = Date.now();
+        }
+        return Date.now() - lastDragTime < 1000;
+      },
       aggressiveness: 3,
     }
   );
