@@ -8,7 +8,8 @@ export interface INpc {
   spawn: IPosition;
   home: IPosition;
   route: IPosition[];
-  lifespan: number;
+  spawnTime: number;
+  deathTime: number;
 }
 
 export enum TerrainTypes {

@@ -37,8 +37,6 @@ async function createBabylonEngine(canvas: HTMLCanvasElement) {
     }
   });
 
-  controller.enqueueCommand(startNewGame(""));
-
   const disposeSpawnNpcBehaviour = startNpcSpawnerBehaviour(controller);
 
   function dispose() {
@@ -46,6 +44,9 @@ async function createBabylonEngine(canvas: HTMLCanvasElement) {
     disposableScene.dispose();
     engine.dispose();
   }
+
+  controller.enqueueCommand(startNewGame(""));
+
   return { engine, dispose };
 }
 

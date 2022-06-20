@@ -15,3 +15,7 @@
 .bottom-panel > * {
   pointer-events: initial;
 }
+
+.npcs-panel button {
+  display: block;
+}

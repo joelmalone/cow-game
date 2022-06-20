@@ -12,7 +12,8 @@ import {
 
 export const GameParams = {
   npcsToSpawn: 5,
-  NpcLifespan: 60,
+  npcLifespan: 10,
+  npcSpawnInterval: 1,
 };
 
 export function createGrid(): IModel["grid"] {
@@ -79,17 +80,19 @@ export function* generateNpcs(
   grid: IModel["grid"],
   homes: IPosition[],
   spawnpoints: IPosition[]
-) {
+): IterableIterator<INpc> {
   for (var i = 0; i < homes.length; i++) {
     const spawn = spawnpoints[i % spawnpoints.length];
     const home = homes[i];
     const route = findPath(grid, spawn, home);
+    const spawnTime = (i + 1) * GameParams.npcSpawnInterval;
     yield {
       id: i,
       home,
-      lifespan: GameParams.NpcLifespan,
       spawn,
       route,
+      spawnTime,
+      deathTime: spawnTime + GameParams.npcLifespan,
     };
   }
 }

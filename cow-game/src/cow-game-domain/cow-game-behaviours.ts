@@ -1,32 +1,52 @@
 import { Command, spawnNpc } from "./cow-game-commands";
 import { GameController } from "./cow-game-controller";
-import { Events } from "./cow-game-events";
-
-export type Executor = (command: Command) => void;
+import { IModel } from "./cow-game-model";
 
 export function startNpcSpawnerBehaviour(gameController: GameController) {
-  const token = setInterval(() => {
-    gameController.enqueueCommand(spawnNpc());
-  }, 10000);
+  var clearTimeouts = () => {};
 
   const unsubscribeEvents = gameController.subscribeEvents((ev) => {
-    if (ev.model.npcsToSpawn.length === 0) {
-      clearInterval(token);
+    switch (ev.event.type) {
+      case "INewGameStarted": {
+        clearTimeouts && clearTimeouts();
+        clearTimeouts = startSpawnTimers(
+          ev.model.npcsToSpawn,
+          gameController.enqueueCommand
+        );
+        console.log("NPC spawner timers have started.", ev.model.npcsToSpawn);
+        break;
+      }
     }
-
-    // switch (ev.event.type) {
-    //   case "INpcSpawned": {
-    //     const { spawnPosition } = ev.event;
-    //     spawnHorse(spawnPosition);
-    //     break;
-    //   }
-    // }
   });
 
   function dispose() {
     unsubscribeEvents();
-    clearInterval(token);
+    clearTimeouts && clearTimeouts();
   }
 
   return dispose;
+}
+
+/**
+ * Starts background timers to spawn each of the NPCs provided using the spawnNpc() command.
+ * @param npcsToSpawn The NPCs to spawn.
+ * @param enqueueCommand The receiver for the spawnNpc() command.
+ * @returns A method to invoke to cancel all timers.
+ */
+function startSpawnTimers(
+  npcsToSpawn: IModel["npcsToSpawn"],
+  enqueueCommand: GameController["enqueueCommand"]
+): () => void {
+  const spawnerTokens = npcsToSpawn.map((npc) => {
+    const token = setTimeout(() => {
+      enqueueCommand(spawnNpc());
+    }, npc.spawnTime * 1000);
+    return token;
+  });
+
+  return () => {
+    for (const t of spawnerTokens) {
+      clearTimeout(t);
+    }
+  };
 }
