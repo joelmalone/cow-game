@@ -16,6 +16,10 @@
   pointer-events: initial;
 }
 
-.npcs-panel button {
+.houses-panel {
+  top: 10rem;
+}
+
+.houses-panel button {
   display: block;
 }

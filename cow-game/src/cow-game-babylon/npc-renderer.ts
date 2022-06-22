@@ -97,7 +97,7 @@ export function createNpcRenderer(
           npcSpawnedEvent.npc.id
         )
       );
-    }, npcSpawnedEvent.npc.lifespan * 1000);
+    }, (npcSpawnedEvent.npc.deathTime-npcSpawnedEvent.npc.spawnTime) * 1000);
 
     return {
       ...cube,

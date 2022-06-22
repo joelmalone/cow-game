@@ -1,8 +1,14 @@
 import { h, render } from "preact";
 import { useCallback, useEffect, useState } from "preact/hooks";
-import { spawnHorse, startNewGame } from "../cow-game-domain/cow-game-commands";
+import { iter } from "ts-iter";
+import {
+  focusOnHouse,
+  spawnHorse,
+  startNewGame,
+} from "../cow-game-domain/cow-game-commands";
 import { GameController } from "../cow-game-domain/cow-game-controller";
-import { IModel } from "../cow-game-domain/cow-game-model";
+import { enumerateHabitableHouses } from "../cow-game-domain/cow-game-logic";
+import { IModel, IPosition } from "../cow-game-domain/cow-game-model";
 
 import "./cow-game-ui.css";
 
@@ -35,6 +41,37 @@ export function CowGameUi({
     gameController.enqueueCommand(spawnHorse());
   }
 
+  function onClickHouseButton(housePosition: IPosition) {
+    gameController.enqueueCommand(focusOnHouse(housePosition));
+  }
+
+  // TODO: move these calcs into the model
+  const houses = iter(enumerateHabitableHouses(model.grid))
+    .map((house) => ({
+      house,
+      npc: model.npcs.find((n) => n.home.x === house.x && n.home.y === house.y),
+    }))
+    .filter(({ npc }) => !!npc)
+    .map(({ house, npc }) => ({
+      house,
+      npc,
+      npcWon: model.housesLost.some((l) => l.x === house.x && l.y === house.y),
+      horseWon: model.housesWon.some((w) => w.x === house.x && w.y === house.y),
+    }))
+    .map(({ house, npc, npcWon, horseWon }) => (
+      <button
+        key={`${house.x},${house.y}`}
+        onClick={() => onClickHouseButton(house)}
+      >
+        🏡
+        {npc &&
+          getNpcEmoji(npc.deathTime - npc.spawnTime, gameTime - npc.spawnTime)}
+        {npcWon && "❌"}
+        {horseWon && "🏆"}
+      </button>
+    ))
+    .toArray();
+
   return (
     <>
       <div class="cow-game-ui">
@@ -44,20 +81,9 @@ export function CowGameUi({
         <p>Horses spawned: {model.horsesSpawned}</p>
         <button onClick={onStartNewGame}>Start new game</button>
       </div>
-      <div class="npcs-panel">
-        {model.npcs.map((npc) => (
-          <button key={npc.id}>
-            NPC {npc.id}{" "}
-            {getNpcEmoji(
-              npc.deathTime - npc.spawnTime,
-              gameTime - npc.spawnTime
-            )}{" "}
-            ({Math.trunc((npc.deathTime - gameTime) * 10) / 10})
-          </button>
-        ))}
-      </div>
+      <div class="houses-panel">{houses}</div>
       <div class="bottom-panel">
-        <button onClick={onClickSpawnHorse}>HORSE ME</button>
+        <button onClick={onClickSpawnHorse}>HORSE ME 🐴</button>
       </div>
     </>
   );
@@ -91,10 +117,16 @@ function useGameTime(gameController: GameController) {
 
 const Emojis = Array.from("😀🙂🤨😡🤬");
 
+/**
+ * Gets an amoji to represent this NPC's lifespan.
+ * @param npcLifespan The NPC's total lifespan.
+ * @param elapsed The NPC's current age.
+ * @returns An emoji as a string.
+ */
 function getNpcEmoji(npcLifespan: number, elapsed: number) {
   const t = elapsed / npcLifespan;
   if (t >= 1) {
-    return "🏆";
+    return "😵";
   }
   const c = t < 0 ? 0 : t > 1 ? 1 : t;
   const e = Emojis[Math.trunc(c * Emojis.length)];

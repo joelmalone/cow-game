@@ -58,3 +58,7 @@ export class AssertionError extends AppError {
     Object.setPrototypeOf(this, AssertionError.prototype);
   }
 }
+
+export function assertUnreachable(x: never): never {
+  throw new Error("Didn't expect to get here.");
+}
