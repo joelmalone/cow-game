@@ -63,11 +63,12 @@ export function CowGameUi({
         key={`${house.x},${house.y}`}
         onClick={() => onClickHouseButton(house)}
       >
-        🏡
+        🚌 &nbsp;&nbsp;&nbsp;
         {npc &&
           getNpcEmoji(npc.deathTime - npc.spawnTime, gameTime - npc.spawnTime)}
-        {npcWon && "❌"}
-        {horseWon && "🏆"}
+        &nbsp;&nbsp;&nbsp; 🏡
+        {/* {npcWon && "❌"}
+        {horseWon && "🏆"} */}
       </button>
     ))
     .toArray();
