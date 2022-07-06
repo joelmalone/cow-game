@@ -21,6 +21,7 @@ import { createRigidHorsesRenderer } from "./rigid-horses-renderer";
 import { createNpcRenderer } from "./npc-renderer";
 import { createCowGameAssetsManager } from "./assets-manager";
 import { createGridRenderer } from "./grid-renderer";
+import { INpc } from "../cow-game-domain/cow-game-model";
 
 // TODO:
 // https://playground.babylonjs.com/#CSPJ7A#3
@@ -87,6 +88,11 @@ export async function createBabylonScene(
 
   const npcRenderer = createNpcRenderer(scene, gameController, ground);
 
+  function getNpcDistanceToHome(npcId: INpc["id"]) {
+    // TODO:
+    return Math.random();
+  }
+
   function dispose() {
     npcRenderer.dispose();
     horseRenderer.dispose();
@@ -98,5 +104,5 @@ export async function createBabylonScene(
 
   await assetsManager.readyPromise;
 
-  return { scene, dispose };
+  return { scene, dispose, simulation: { getNpcDistanceToHome } };
 }

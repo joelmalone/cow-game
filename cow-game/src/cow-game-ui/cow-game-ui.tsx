@@ -9,13 +9,16 @@ import {
 import { GameController } from "../cow-game-domain/cow-game-controller";
 import { enumerateHabitableHouses } from "../cow-game-domain/cow-game-logic";
 import { IModel, IPosition } from "../cow-game-domain/cow-game-model";
+import { CowGameSimulation } from "../cow-game-domain/cow-game-simulation";
 
 import "./cow-game-ui.css";
 
 export function CowGameUi({
   gameController,
+  simulation
 }: {
   gameController: GameController;
+  simulation: CowGameSimulation | null;
 }) {
   const [model, setModel] = useState<IModel | null>(null);
 
@@ -27,7 +30,7 @@ export function CowGameUi({
     return unsubscriber;
   }, [gameController]);
 
-  const gameTime = useGameTime(gameController);
+  const gameTime = useGameTime(gameController, 100);
 
   if (!model) {
     return null;
@@ -64,6 +67,7 @@ export function CowGameUi({
         onClick={() => onClickHouseButton(house)}
       >
         🚌 &nbsp;&nbsp;&nbsp;
+        {npc && simulation?.getNpcDistanceToHome(npc.id).toString() || 'huh'}
         {npc &&
           getNpcEmoji(npc.deathTime - npc.spawnTime, gameTime - npc.spawnTime)}
         &nbsp;&nbsp;&nbsp; 🏡
@@ -90,7 +94,7 @@ export function CowGameUi({
   );
 }
 
-function useGameTime(gameController: GameController) {
+function useGameTime(gameController: GameController, intervalMsec: number) {
   const [startTime, setStartTime] = useState(0);
 
   useEffect(() => {
@@ -109,7 +113,7 @@ function useGameTime(gameController: GameController) {
   useEffect(() => {
     const n = setInterval(() => {
       setTime(Date.now());
-    }, 100);
+    }, intervalMsec);
     return () => clearInterval(n);
   }, []);
 
