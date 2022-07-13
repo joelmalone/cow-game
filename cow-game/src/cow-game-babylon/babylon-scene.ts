@@ -88,11 +88,6 @@ export async function createBabylonScene(
 
   const npcRenderer = createNpcRenderer(scene, gameController, ground);
 
-  function getNpcDistanceToHome(npcId: INpc["id"]) {
-    // TODO:
-    return Math.random();
-  }
-
   function dispose() {
     npcRenderer.dispose();
     horseRenderer.dispose();
@@ -104,5 +99,9 @@ export async function createBabylonScene(
 
   await assetsManager.readyPromise;
 
-  return { scene, dispose, simulation: { getNpcDistanceToHome } };
+  return {
+    scene,
+    dispose,
+    simulation: { getNpcPosition: npcRenderer.getNpcPosition },
+  };
 }

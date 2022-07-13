@@ -7,7 +7,10 @@ import {
   startNewGame,
 } from "../cow-game-domain/cow-game-commands";
 import { GameController } from "../cow-game-domain/cow-game-controller";
-import { enumerateHabitableHouses } from "../cow-game-domain/cow-game-logic";
+import {
+  calculateNpcDistanceToHome,
+  enumerateHabitableHouses,
+} from "../cow-game-domain/cow-game-logic";
 import { IModel, IPosition } from "../cow-game-domain/cow-game-model";
 import { CowGameSimulation } from "../cow-game-domain/cow-game-simulation";
 
@@ -15,7 +18,7 @@ import "./cow-game-ui.css";
 
 export function CowGameUi({
   gameController,
-  simulation
+  simulation,
 }: {
   gameController: GameController;
   simulation: CowGameSimulation | null;
@@ -30,7 +33,7 @@ export function CowGameUi({
     return unsubscriber;
   }, [gameController]);
 
-  const gameTime = useGameTime(gameController, 100);
+  const gameTime = useGameTime(gameController, 1000);
 
   if (!model) {
     return null;
@@ -61,20 +64,33 @@ export function CowGameUi({
       npcWon: model.housesLost.some((l) => l.x === house.x && l.y === house.y),
       horseWon: model.housesWon.some((w) => w.x === house.x && w.y === house.y),
     }))
-    .map(({ house, npc, npcWon, horseWon }) => (
-      <button
-        key={`${house.x},${house.y}`}
-        onClick={() => onClickHouseButton(house)}
-      >
-        🚌 &nbsp;&nbsp;&nbsp;
-        {npc && simulation?.getNpcDistanceToHome(npc.id).toString() || 'huh'}
-        {npc &&
-          getNpcEmoji(npc.deathTime - npc.spawnTime, gameTime - npc.spawnTime)}
-        &nbsp;&nbsp;&nbsp; 🏡
-        {/* {npcWon && "❌"}
-        {horseWon && "🏆"} */}
-      </button>
-    ))
+    .map(({ house, npc, npcWon, horseWon }) => {
+      function getLabel() {
+        if (npcWon) {
+          return "❌";
+        }
+        if (horseWon) {
+          return "🏆";
+        }
+
+        const emoji =
+          npc &&
+          getNpcEmoji(npc.deathTime - npc.spawnTime, gameTime - npc.spawnTime);
+
+        const pos = npc && simulation?.getNpcPosition(npc.id);
+        const dist = pos && calculateNpcDistanceToHome(pos, house);
+        const leftDashes = (dist && "-".repeat((1 - dist) * 10)) || "";
+        const rightDashes = "-".repeat(10 - leftDashes.length);
+
+        return "🚌" + leftDashes + emoji + rightDashes + "🏡";
+      }
+
+      return (
+        <button key={`${npc?.id}`} onClick={() => onClickHouseButton(house)}>
+          {getLabel()}
+        </button>
+      );
+    })
     .toArray();
 
   return (

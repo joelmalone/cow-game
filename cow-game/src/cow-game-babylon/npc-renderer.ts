@@ -13,7 +13,7 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scalar } from "@babylonjs/core/Maths/math.scalar";
 import { Node } from "@babylonjs/core/node";
-import { IPosition } from "../cow-game-domain/cow-game-model";
+import { INpc, IPosition } from "../cow-game-domain/cow-game-model";
 import {
   GridMidpoint,
   positionToVector3,
@@ -50,6 +50,13 @@ export function createNpcRenderer(
      * Called when the NPC just moved (they move in bursts).
      */
     function onNpcMoved(position: Vector3) {
+      // If an NPC "falls out of the world" then count them as exploded
+      if (position.y < -10) {
+        gameController.enqueueCommand(
+          notifyNpcExploded(npcSpawnedEvent.npc.id)
+        );
+      }
+
       spawnDebugLine(
         scene,
         position,
@@ -70,9 +77,7 @@ export function createNpcRenderer(
         // Arrived at home!
         console.debug(`An npc has arrived at home!`, npcSpawnedEvent);
         gameController.enqueueCommand(
-          notifyNpcArrivedAtHome(
-            npcSpawnedEvent.npc.id
-          )
+          notifyNpcArrivedAtHome(npcSpawnedEvent.npc.id)
         );
       } else {
         cube.setMoveTarget(
@@ -87,17 +92,14 @@ export function createNpcRenderer(
       scene,
       positionToVector3(npcSpawnedEvent.npc.route[0], 2).add(GridMidpoint),
       onNpcMoved,
+      1.5,
       onArrivedAtTarget
     );
     cube.mesh.parent = npcParent;
 
     const timeout = setTimeout(() => {
-      gameController.enqueueCommand(
-        notifyNpcExploded(
-          npcSpawnedEvent.npc.id
-        )
-      );
-    }, (npcSpawnedEvent.npc.deathTime-npcSpawnedEvent.npc.spawnTime) * 1000);
+      gameController.enqueueCommand(notifyNpcExploded(npcSpawnedEvent.npc.id));
+    }, (npcSpawnedEvent.npc.deathTime - npcSpawnedEvent.npc.spawnTime) * 1000);
 
     return {
       ...cube,
@@ -146,8 +148,14 @@ export function createNpcRenderer(
     unsubscribeEvents();
   }
 
+  function getNpcPosition(npcId: INpc["id"]): IPosition {
+    const npc = renderController.get(npcId);
+    return vector3ToPosition(npc.mesh.position);
+  }
+
   return {
     dispose,
+    getNpcPosition,
   };
 }
 
@@ -155,6 +163,7 @@ function createWanderingCube(
   scene: Scene,
   position: Vector3,
   onMoved: (position: Vector3, impulse: Vector3) => void,
+  arriveDistance: number,
   onArrivedAtTarget: () => void
 ) {
   var disposed = false;
@@ -212,7 +221,7 @@ function createWanderingCube(
       if (moveTarget) {
         const diff = moveTarget.subtract(mesh.position);
         diff.y = 0;
-        if (diff.length() < 0.5) {
+        if (diff.length() < arriveDistance) {
           moveTarget = null;
           onArrivedAtTarget();
         }

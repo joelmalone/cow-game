@@ -12,8 +12,8 @@ import {
 
 export const GameParams = {
   npcsToSpawn: 5,
-  npcLifespan: 10,
-  npcSpawnInterval: 1,
+  npcLifespan: 120,
+  npcSpawnInterval: 10,
 };
 
 export function createGrid(): IModel["grid"] {
@@ -68,6 +68,12 @@ export function createGrid(): IModel["grid"] {
 export function* enumerateHabitableHouses(grid: IModel["grid"]) {
   for (var y = 0; y < grid.height; y++) {
     for (var x = 0; x < grid.width; x++) {
+      // Do not allow NPCs to live in the bottom edges; it's too close to spawn
+      const isTooCloseToSpawn = x < 2 || y < 2;
+      if (isTooCloseToSpawn) {
+        continue;
+      }
+
       const isHouse = grid.cells[y * grid.width + x].house;
       if (isHouse) {
         yield { x, y };
@@ -214,4 +220,14 @@ export function findPath(
       to: destination,
     });
   }
+}
+
+export function calculateNpcDistanceToHome(
+  npcPosition: IPosition,
+  home: IPosition
+) {
+  const dx = home.x - npcPosition.x;
+  const dy = home.y - npcPosition.y;
+  const d = Math.sqrt(dx * dx + dy * dy) / 5;
+  return d < 0 ? 0 : d > 1 ? 1 : d;
 }
