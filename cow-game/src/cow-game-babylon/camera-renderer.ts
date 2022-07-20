@@ -8,14 +8,18 @@ import type { GameController } from "../cow-game-domain/cow-game-controller";
 import { tap } from "../cow-game-domain/cow-game-commands";
 import {
   getMetadata,
+  GridMidpoint,
   GroundPlane,
   positionToVector3,
   vector3ToPosition,
 } from "./babylon-helpers";
-import { Tappable } from "../cow-game-domain/cow-game-model";
+import { IPosition, Tappable } from "../cow-game-domain/cow-game-model";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
-import { startFollowBehaviour } from "../reusable/babylon/follow-behaviour";
+import {
+  HasPosition,
+  startFollowBehaviour,
+} from "../reusable/babylon/follow-behaviour";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
 export function createCameraRenderer(
@@ -28,7 +32,7 @@ export function createCameraRenderer(
   const cameraDistance = 100;
   const cameraOffset = cameraDirection.scale(-cameraDistance);
 
-  var camera = new FreeCamera("Main camera", cameraOffset, scene);
+  const camera = new FreeCamera("Main camera", cameraOffset, scene);
   camera.target = Vector3.Zero();
   camera.fov = 0.025;
 
@@ -40,20 +44,30 @@ export function createCameraRenderer(
   // Attach the camera to the canvas, so dragging works
   camera.attachControl(canvas);
 
+  var focusUntil = 0;
+  var focus: HasPosition | null = null;
+
   // Make the camera follow the player (but maintain relative position)
   var lastDragTime = 0;
-  const cameraFollow = startFollowBehaviour(
+  const followCamera = startFollowBehaviour(
     scene,
     camera,
-    playerTransformNode,
+    () => {
+      if (panCameraInput.isDragging) {
+        lastDragTime = Date.now();
+      }
+      if (Date.now() - lastDragTime < 1000) {
+        return null;
+      }
+
+      if (focus && Date.now() < focusUntil) {
+        return focus;
+      }
+
+      return playerTransformNode;
+    },
     {
       useOffset: true,
-      isPaused: () => {
-        if (panCameraInput.isDragging) {
-          lastDragTime = Date.now();
-        }
-        return Date.now() - lastDragTime < 1000;
-      },
       aggressiveness: 3,
     }
   );
@@ -87,8 +101,20 @@ export function createCameraRenderer(
     }
   });
 
+  const unsubscribe = gameController.subscribeEvents((ev) => {
+    switch (ev.event.type) {
+      case "IHouseFocused": {
+        focusUntil = Date.now() + 2000;
+        focus = {
+          position: positionToVector3(ev.event.housePosition).add(GridMidpoint),
+        };
+      }
+    }
+  });
+
   function dispose() {
-    cameraFollow.dispose();
+    unsubscribe();
+    followCamera.dispose();
     camera.dispose();
   }
 

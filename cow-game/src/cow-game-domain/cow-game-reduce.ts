@@ -1,4 +1,5 @@
 import { AppError } from "../reusable/app-errors";
+import { assertUnreachable } from "../reusable/assertions";
 import type { Events } from "./cow-game-events";
 import type { IModel } from "./cow-game-model";
 
@@ -26,7 +27,7 @@ export function reduce(model: IModel, ev: Events): IModel {
       const { npc } = ev;
       return {
         ...model,
-        npcsToSpawn: model.npcsToSpawn.filter(i => i.id !== npc.id),
+        npcsToSpawn: model.npcsToSpawn.filter((i) => i.id !== npc.id),
         npcs: model.npcs.concat(npc),
       };
     }
@@ -55,6 +56,14 @@ export function reduce(model: IModel, ev: Events): IModel {
         housesWon: [...model.housesWon, npc.home],
       };
     }
+
+    case "IHouseFocused": {
+      return model;
+    }
+
+    default:
+      // A compilation error here means there's a missing case up there ☝️
+      assertUnreachable(ev);
   }
 
   throw new AppError("An event was not handled in the reducer.", { model, ev });

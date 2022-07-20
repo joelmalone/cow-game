@@ -99,3 +99,9 @@ export function notifyNpcExploded(npcId: number): Command {
     emitEvent({ type: "INpcExploded", npc });
   };
 }
+
+export function focusOnHouse(housePosition: IPosition): Command {
+  return function focusOnHouse({ model }, emitEvent) {
+    emitEvent({ type: "IHouseFocused", housePosition });
+  };
+}

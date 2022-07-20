@@ -15,3 +15,11 @@
 .bottom-panel > * {
   pointer-events: initial;
 }
+
+.houses-panel {
+  top: 10rem;
+}
+
+.houses-panel button {
+  display: block;
+}

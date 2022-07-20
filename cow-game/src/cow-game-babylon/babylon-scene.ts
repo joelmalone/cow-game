@@ -21,6 +21,7 @@ import { createRigidHorsesRenderer } from "./rigid-horses-renderer";
 import { createNpcRenderer } from "./npc-renderer";
 import { createCowGameAssetsManager } from "./assets-manager";
 import { createGridRenderer } from "./grid-renderer";
+import { INpc } from "../cow-game-domain/cow-game-model";
 
 // TODO:
 // https://playground.babylonjs.com/#CSPJ7A#3
@@ -98,5 +99,9 @@ export async function createBabylonScene(
 
   await assetsManager.readyPromise;
 
-  return { scene, dispose };
+  return {
+    scene,
+    dispose,
+    simulation: { getNpcPosition: npcRenderer.getNpcPosition },
+  };
 }
