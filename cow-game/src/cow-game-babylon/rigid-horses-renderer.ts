@@ -61,13 +61,13 @@ export function createRigidHorsesRenderer(
     horseRoot.physicsImpostor = new PhysicsImpostor(
       horseRoot,
       PhysicsImpostor.BoxImpostor,
-      { mass: 1, restitution: 0.1 },
+      { mass: 5, restitution: 0.1 },
       scene
     );
     // Add some poing
     horseRoot.physicsImpostor.applyImpulse(
-      new Vector3(Math.random(), 5, Math.random()),
-      horseRoot.getAbsolutePosition().addInPlaceFromFloats(0, 0.5, 0)
+      new Vector3(Math.random(), 25, Math.random()),
+      horseRoot.getAbsolutePosition().addInPlaceFromFloats(0, 2.5, 0)
     );
 
     // Attach the visible mesh to the root

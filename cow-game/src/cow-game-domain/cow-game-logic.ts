@@ -12,7 +12,7 @@ import {
 
 export const GameParams = {
   npcsToSpawn: 5,
-  npcLifespan: 120,
+  npcLifespan: 60,
   npcSpawnInterval: 10,
 };
 

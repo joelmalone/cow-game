@@ -7,12 +7,13 @@ export function reduce(model: IModel, ev: Events): IModel {
   switch (ev.type) {
     case "INewGameStarted": {
       return {
+        gameState: "playing",
         npcLifespan: ev.npcLifespan,
         grid: ev.grid,
         playerSpawn: ev.playerSpawn,
         npcsToSpawn: ev.npcsToSpawn,
         npcs: [],
-        housesRemaining: ev.grid.cells.filter((c) => c.house).length,
+        housesRemaining: ev.npcsToSpawn.length,
         horsesSpawned: 0,
         housesLost: [],
         housesWon: [],
@@ -59,6 +60,13 @@ export function reduce(model: IModel, ev: Events): IModel {
 
     case "IHouseFocused": {
       return model;
+    }
+
+    case "IGameEnded": {
+      return {
+        ...model,
+        gameState: "gameOver",
+      };
     }
 
     default:

@@ -105,3 +105,10 @@ export function focusOnHouse(housePosition: IPosition): Command {
     emitEvent({ type: "IHouseFocused", housePosition });
   };
 }
+
+export function endGame(): Command {
+  return function endGame({ model }, emitEvent) {
+    const playerScore = model.housesWon.length;
+    emitEvent({ type: "IGameEnded", playerScore });
+  };
+}

@@ -13,7 +13,10 @@ import BabylonEngine, {
 import "./index.css";
 import { createBabylonScene } from "./cow-game-babylon/babylon-scene";
 import { createGameController } from "./cow-game-domain/cow-game-controller";
-import { startNpcSpawnerBehaviour } from "./cow-game-domain/cow-game-behaviours";
+import {
+  startGameOverProcess as startGameOverBehaviour,
+  startNpcSpawnerBehaviour,
+} from "./cow-game-domain/cow-game-behaviours";
 import { startNewGame } from "./cow-game-domain/cow-game-commands";
 import { CowGameUi } from "./cow-game-ui/cow-game-ui";
 import { CowGameSimulation } from "./cow-game-domain/cow-game-simulation";
@@ -55,10 +58,13 @@ function App() {
         }
       });
 
-      const disposeSpawnNpcBehaviour = startNpcSpawnerBehaviour(controller);
+      const behaviourDisposers = [
+        startNpcSpawnerBehaviour(controller),
+        startGameOverBehaviour(controller),
+      ];
 
       function dispose() {
-        disposeSpawnNpcBehaviour();
+        behaviourDisposers.forEach((d) => d());
         disposableScene.dispose();
         engine.dispose();
       }

@@ -37,6 +37,11 @@ export interface IHouseFocused {
   housePosition: IPosition;
 }
 
+export interface IGameEnded {
+  type: "IGameEnded";
+  playerScore: number;
+}
+
 export type Events =
   | INewGameStarted
   | IDestinationUpdated
@@ -44,4 +49,5 @@ export type Events =
   | INpcSpawned
   | INpcArrivedAtHome
   | INpcExploded
-  | IHouseFocused;
+  | IHouseFocused
+  | IGameEnded;

@@ -58,6 +58,9 @@ export function CowGameUi({
       npc: model.npcs.find((n) => n.home.x === house.x && n.home.y === house.y),
     }))
     .filter(({ npc }) => !!npc)
+    .sort((a, b) =>
+      a.npc!.id < b.npc!.id ? -1 : a.npc!.id > b.npc!.id ? 1 : 0
+    )
     .map(({ house, npc }) => ({
       house,
       npc,
@@ -105,6 +108,22 @@ export function CowGameUi({
       <div class="houses-panel">{houses}</div>
       <div class="bottom-panel">
         <button onClick={onClickSpawnHorse}>HORSE ME 🐴</button>
+      </div>
+      <div class="game-over-overlay" hidden={model.gameState !== "gameOver"}>
+        <div class="game-over-panel">
+          <h2>GAME OVA</h2>
+          <p>
+            You won {model.housesWon.length}{" "}
+            {"🏡".repeat(model.housesWon.length)} and lost{" "}
+            {model.housesLost.length} {"🏡".repeat(model.housesLost.length)}{" "}
+            houses.
+          </p>
+          <p>
+            You spawned {model.horsesSpawned} {"🐴".repeat(model.horsesSpawned)}{" "}
+            horses.
+          </p>
+          <button onClick={onStartNewGame}>Start new game</button>
+        </div>
       </div>
     </>
   );

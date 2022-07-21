@@ -51,7 +51,7 @@ export function createNpcRenderer(
      */
     function onNpcMoved(position: Vector3) {
       // If an NPC "falls out of the world" then count them as exploded
-      if (position.y < -10) {
+      if (position.y < -1) {
         gameController.enqueueCommand(
           notifyNpcExploded(npcSpawnedEvent.npc.id)
         );
@@ -92,7 +92,7 @@ export function createNpcRenderer(
       scene,
       positionToVector3(npcSpawnedEvent.npc.route[0], 2).add(GridMidpoint),
       onNpcMoved,
-      1.5,
+      1,
       onArrivedAtTarget
     );
     cube.mesh.parent = npcParent;
@@ -216,7 +216,7 @@ function createWanderingCube(
 
   async function brain() {
     do {
-      await delay(Math.random() * 2000 + 1000);
+      await delay(1000);
 
       if (moveTarget) {
         const diff = moveTarget.subtract(mesh.position);
@@ -264,5 +264,5 @@ function spawnDebugLine(scene: Scene, ...points: Vector3[]) {
   debugLine.parent = parent;
   setTimeout(() => {
     debugLine.dispose();
-  }, 2500);
+  }, 1000);
 }

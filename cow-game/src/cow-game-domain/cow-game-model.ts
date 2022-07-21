@@ -37,6 +37,7 @@ export interface ICell {
 }
 
 export interface IModel {
+  gameState: 'playing' | 'gameOver',
   npcLifespan: number;
   grid: {
     width: number;

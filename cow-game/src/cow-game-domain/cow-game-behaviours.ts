@@ -1,4 +1,4 @@
-import { Command, spawnNpc } from "./cow-game-commands";
+import { Command, endGame, spawnNpc } from "./cow-game-commands";
 import { GameController } from "./cow-game-controller";
 import { IModel } from "./cow-game-model";
 
@@ -49,4 +49,16 @@ function startSpawnTimers(
       clearTimeout(t);
     }
   };
+}
+
+export function startGameOverProcess(
+  gameController: GameController
+): () => void {
+  const unsubscribe = gameController.subscribeEvents((ev) => {
+    if (ev.model.gameState === "playing" && ev.model.housesRemaining === 0) {
+      gameController.enqueueCommand(endGame());
+    }
+  });
+
+  return unsubscribe;
 }
