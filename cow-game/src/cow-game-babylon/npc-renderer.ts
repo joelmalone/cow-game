@@ -29,6 +29,8 @@ import {
   notifyNpcArrivedAtHome,
   notifyNpcExploded,
 } from "../cow-game-domain/cow-game-commands";
+import { HasPosition } from "../reusable/babylon/follow-behaviour";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 const CUBE_SIZE = 0.25;
 const CUBE_MASS = 40;
@@ -148,14 +150,14 @@ export function createNpcRenderer(
     unsubscribeEvents();
   }
 
-  function getNpcPosition(npcId: INpc["id"]): IPosition {
+  function getNpc(npcId: INpc["id"]): TransformNode {
     const npc = renderController.get(npcId);
-    return vector3ToPosition(npc.mesh.position);
+    return npc.mesh;
   }
 
   return {
     dispose,
-    getNpcPosition,
+    getNpc,
   };
 }
 

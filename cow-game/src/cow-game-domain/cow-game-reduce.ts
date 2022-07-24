@@ -58,7 +58,7 @@ export function reduce(model: IModel, ev: Events): IModel {
       };
     }
 
-    case "IHouseFocused": {
+    case "INpcFocused": {
       return model;
     }
 

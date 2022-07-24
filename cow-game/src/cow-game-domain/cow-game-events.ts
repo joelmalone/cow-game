@@ -32,9 +32,9 @@ export interface INpcExploded {
   npc: INpc;
 }
 
-export interface IHouseFocused {
-  type: "IHouseFocused";
-  housePosition: IPosition;
+export interface INpcFocused {
+  type: "INpcFocused";
+  npcId: INpc['id'];
 }
 
 export interface IGameEnded {
@@ -49,5 +49,5 @@ export type Events =
   | INpcSpawned
   | INpcArrivedAtHome
   | INpcExploded
-  | IHouseFocused
+  | INpcFocused
   | IGameEnded;

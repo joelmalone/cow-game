@@ -101,24 +101,18 @@ export function createCameraRenderer(
     }
   });
 
-  const unsubscribe = gameController.subscribeEvents((ev) => {
-    switch (ev.event.type) {
-      case "IHouseFocused": {
-        focusUntil = Date.now() + 2000;
-        focus = {
-          position: positionToVector3(ev.event.housePosition).add(GridMidpoint),
-        };
-      }
-    }
-  });
+  function focusOn(thing: HasPosition) {
+    focusUntil = Date.now() + 2000;
+    focus = thing;
+  }
 
   function dispose() {
-    unsubscribe();
     followCamera.dispose();
     camera.dispose();
   }
 
   return {
+    focusOn,
     dispose,
   };
 }

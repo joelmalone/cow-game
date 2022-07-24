@@ -2,7 +2,7 @@ import { h, render } from "preact";
 import { useCallback, useEffect, useState } from "preact/hooks";
 import { iter } from "ts-iter";
 import {
-  focusOnHouse,
+  focusOnNpc,
   spawnHorse,
   startNewGame,
 } from "../cow-game-domain/cow-game-commands";
@@ -11,7 +11,7 @@ import {
   calculateNpcDistanceToHome,
   enumerateHabitableHouses,
 } from "../cow-game-domain/cow-game-logic";
-import { IModel, IPosition } from "../cow-game-domain/cow-game-model";
+import { IModel, INpc, IPosition } from "../cow-game-domain/cow-game-model";
 import { CowGameSimulation } from "../cow-game-domain/cow-game-simulation";
 
 import "./cow-game-ui.css";
@@ -47,8 +47,8 @@ export function CowGameUi({
     gameController.enqueueCommand(spawnHorse());
   }
 
-  function onClickHouseButton(housePosition: IPosition) {
-    gameController.enqueueCommand(focusOnHouse(housePosition));
+  function onClickShowNpc(npcId: INpc["id"]) {
+    gameController.enqueueCommand(focusOnNpc(npcId));
   }
 
   // TODO: move these calcs into the model
@@ -89,7 +89,7 @@ export function CowGameUi({
       }
 
       return (
-        <button key={`${npc?.id}`} onClick={() => onClickHouseButton(house)}>
+        <button key={`${npc!.id}`} onClick={() => onClickShowNpc(npc!.id)}>
           {getLabel()}
         </button>
       );

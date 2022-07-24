@@ -22,6 +22,8 @@ import { createNpcRenderer } from "./npc-renderer";
 import { createCowGameAssetsManager } from "./assets-manager";
 import { createGridRenderer } from "./grid-renderer";
 import { INpc } from "../cow-game-domain/cow-game-model";
+import { vector3ToPosition } from "./babylon-helpers";
+import { CowGameSimulation } from "../cow-game-domain/cow-game-simulation";
 
 // TODO:
 // https://playground.babylonjs.com/#CSPJ7A#3
@@ -88,7 +90,18 @@ export async function createBabylonScene(
 
   const npcRenderer = createNpcRenderer(scene, gameController, ground);
 
+  const unsubscribe = gameController.subscribeEvents((ev) => {
+    switch (ev.event.type) {
+      case "INpcFocused": {
+        const npcMesh = npcRenderer.getNpc(ev.event.npcId);
+        npcMesh && cameraRenderer.focusOn(npcMesh);
+        break;
+      }
+    }
+  });
+
   function dispose() {
+    unsubscribe();
     npcRenderer.dispose();
     horseRenderer.dispose();
     gridRenderer.dispose();
@@ -99,9 +112,14 @@ export async function createBabylonScene(
 
   await assetsManager.readyPromise;
 
+  const simulation: CowGameSimulation = {
+    getNpcPosition: (npcId: INpc["id"]) =>
+      vector3ToPosition(npcRenderer.getNpc(npcId).position),
+  };
+
   return {
     scene,
     dispose,
-    simulation: { getNpcPosition: npcRenderer.getNpcPosition },
+    simulation,
   };
 }
