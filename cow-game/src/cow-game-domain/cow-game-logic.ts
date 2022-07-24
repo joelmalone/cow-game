@@ -231,3 +231,13 @@ export function calculateNpcDistanceToHome(
   const d = Math.sqrt(dx * dx + dy * dy) / 5;
   return d < 0 ? 0 : d > 1 ? 1 : d;
 }
+
+export function distBetweenPositions(
+  a: IPosition,
+  b: IPosition
+) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const d = Math.sqrt(dx * dx + dy * dy);
+  return d;
+}

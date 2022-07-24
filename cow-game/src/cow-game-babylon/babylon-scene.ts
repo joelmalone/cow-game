@@ -115,6 +115,7 @@ export async function createBabylonScene(
   const simulation: CowGameSimulation = {
     getNpcPosition: (npcId: INpc["id"]) =>
       vector3ToPosition(npcRenderer.getNpc(npcId).position),
+    getNpcMood: (npcId: INpc["id"]) => npcRenderer.getBlockedFactor(npcId),
   };
 
   return {

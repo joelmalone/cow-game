@@ -76,9 +76,8 @@ export function CowGameUi({
           return "🏆";
         }
 
-        const emoji =
-          npc &&
-          getNpcEmoji(npc.deathTime - npc.spawnTime, gameTime - npc.spawnTime);
+        const mood = simulation?.getNpcMood(npc!.id) || 0;
+        const emoji = npc && getMoodEmoji(mood);
 
         const pos = npc && simulation?.getNpcPosition(npc.id);
         const dist = pos && calculateNpcDistanceToHome(pos, house);
@@ -158,17 +157,15 @@ function useGameTime(gameController: GameController, intervalMsec: number) {
 const Emojis = Array.from("😀🙂🤨😡🤬");
 
 /**
- * Gets an amoji to represent this NPC's lifespan.
- * @param npcLifespan The NPC's total lifespan.
- * @param elapsed The NPC's current age.
+ * Gets an emoji to represent this NPC's curren moob.
+ * @param mood The NPC's mood from 0 (happy) to 1 (MAD and also DEAD).
  * @returns An emoji as a string.
  */
-function getNpcEmoji(npcLifespan: number, elapsed: number) {
-  const t = elapsed / npcLifespan;
-  if (t >= 1) {
+function getMoodEmoji(mood: number) {
+  if (mood >= 1) {
     return "😵";
   }
-  const c = t < 0 ? 0 : t > 1 ? 1 : t;
+  const c = mood < 0 ? 0 : mood > 1 ? 1 : mood;
   const e = Emojis[Math.trunc(c * Emojis.length)];
   return e;
 }

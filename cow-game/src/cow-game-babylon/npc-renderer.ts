@@ -31,6 +31,7 @@ import {
 } from "../cow-game-domain/cow-game-commands";
 import { HasPosition } from "../reusable/babylon/follow-behaviour";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { distBetweenPositions } from "../cow-game-domain/cow-game-logic";
 
 const CUBE_SIZE = 0.25;
 const CUBE_MASS = 40;
@@ -99,14 +100,24 @@ export function createNpcRenderer(
     );
     cube.mesh.parent = npcParent;
 
-    const timeout = setTimeout(() => {
-      gameController.enqueueCommand(notifyNpcExploded(npcSpawnedEvent.npc.id));
-    }, (npcSpawnedEvent.npc.deathTime - npcSpawnedEvent.npc.spawnTime) * 1000);
+    const blockedFactorBehaviour = startBlockedFactorBehaviour(
+      cube.mesh,
+      .25,
+      10,
+      () => {
+        gameController.enqueueCommand(
+          notifyNpcExploded(npcSpawnedEvent.npc.id)
+        );
+      }
+    );
 
     return {
       ...cube,
+      get blockedFactor() {
+        return blockedFactorBehaviour.blockedFactor;
+      },
       dispose: () => {
-        clearTimeout(timeout);
+        blockedFactorBehaviour.dispose();
         cube.dispose();
       },
     };
@@ -155,9 +166,15 @@ export function createNpcRenderer(
     return npc.mesh;
   }
 
+  function getBlockedFactor(npcId: INpc["id"]): number {
+    const npc = renderController.get(npcId);
+    return npc.blockedFactor;
+  }
+
   return {
     dispose,
     getNpc,
+    getBlockedFactor,
   };
 }
 
@@ -267,4 +284,55 @@ function spawnDebugLine(scene: Scene, ...points: Vector3[]) {
   setTimeout(() => {
     debugLine.dispose();
   }, 1000);
+}
+
+/**
+ * Continuously observes an NPC mesh and calculates the ongoing "blocked factor."
+ * @param transform The NPC mesh being observed.
+ * @param minimumDistance The minimum distance that must be travelled per second to be considered "not blocked."
+ * @param maximumBlockedTimeSeconds The maximum am0unt of time to be blocked; if exceeded, the NPC will explode.
+ * @param onExploded Invoked when the maximum blocked time has been reached.
+ * @returns A mini API to query the blocked factor, and to dispose the behaviour.
+ */
+function startBlockedFactorBehaviour(
+  transform: TransformNode,
+  minimumDistance: number,
+  maximumBlockedTimeSeconds: number,
+  onExploded: () => void
+) {
+  var blocked: {
+    position: IPosition;
+    start: number;
+  } | null = null;
+  var blockedFactor = 0;
+  const intervalToken = setInterval(() => {
+    const t = Date.now();
+    const pos = vector3ToPosition(transform.position);
+    if (
+      !blocked ||
+      distBetweenPositions(blocked.position, pos) > minimumDistance
+    ) {
+      blocked = {
+        position: pos,
+        start: t,
+      };
+    }
+
+    blockedFactor =
+      (blocked && (t - blocked.start) / 1000 / maximumBlockedTimeSeconds) || 0;
+
+    if (blockedFactor >= 1) {
+      clearInterval(intervalToken);
+      onExploded();
+    }
+  }, 1000);
+
+  return {
+    get blockedFactor() {
+      return blockedFactor;
+    },
+    dispose() {
+      clearInterval(intervalToken);
+    },
+  };
 }

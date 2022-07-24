@@ -9,4 +9,10 @@ export interface CowGameSimulation {
    * @param npcId
    */
    getNpcPosition(npcId: INpc["id"]): IPosition;
+
+   /**
+   * Gets the current mood on an NPC, from 0 (happy) to 1 (MAD and also DEAD).
+   * @param npcId
+   */
+  getNpcMood(npcId: INpc["id"]): number;
 }
