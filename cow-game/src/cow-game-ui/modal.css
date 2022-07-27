@@ -1,0 +1,38 @@
+.modal {
+  display: block;
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0, 0, 0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
+}
+
+.modal[hidden] {
+  display: none; /* Hidden by default */
+}
+
+.modal .modal-content {
+  background-color: #fefefe;
+  margin: 1rem auto; /* 15% from the top and centered */
+  padding: 1rem;
+  border: 0.1rem solid #888;
+  width: 50%; /* Could be more or less, depending on screen size */
+}
+
+.modal .modal-close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.modal .modal-close:hover,
+.modal .modal-close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}

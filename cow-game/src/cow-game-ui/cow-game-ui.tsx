@@ -15,6 +15,7 @@ import { IModel, INpc, IPosition } from "../cow-game-domain/cow-game-model";
 import { CowGameSimulation } from "../cow-game-domain/cow-game-simulation";
 
 import "./cow-game-ui.css";
+import { Modal } from "./modal";
 
 export function CowGameUi({
   gameController,
@@ -108,22 +109,19 @@ export function CowGameUi({
       <div class="bottom-panel">
         <button onClick={onClickSpawnHorse}>HORSE ME 🐴</button>
       </div>
-      <div class="game-over-overlay" hidden={model.gameState !== "gameOver"}>
-        <div class="game-over-panel">
-          <h2>GAME OVA</h2>
-          <p>
-            You won {model.housesWon.length}{" "}
-            {"🏡".repeat(model.housesWon.length)} and lost{" "}
-            {model.housesLost.length} {"🏡".repeat(model.housesLost.length)}{" "}
-            houses.
-          </p>
-          <p>
-            You spawned {model.horsesSpawned} {"🐴".repeat(model.horsesSpawned)}{" "}
-            horses.
-          </p>
-          <button onClick={onStartNewGame}>Start new game</button>
-        </div>
-      </div>
+      <Modal hidden={model.gameState !== "gameOver"}>
+        <h2>GAME OVA</h2>
+        <p>
+          You won {model.housesWon.length} {"🏡".repeat(model.housesWon.length)}{" "}
+          and lost {model.housesLost.length}{" "}
+          {"🏡".repeat(model.housesLost.length)} houses.
+        </p>
+        <p>
+          You spawned {model.horsesSpawned} {"🐴".repeat(model.horsesSpawned)}{" "}
+          horses.
+        </p>
+        <button onClick={onStartNewGame}>Start new game</button>
+      </Modal>
     </>
   );
 }
