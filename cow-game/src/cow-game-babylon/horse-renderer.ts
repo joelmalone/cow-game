@@ -18,7 +18,7 @@ import {
 import { AppError } from "../reusable/app-errors";
 import { IPosition } from "../cow-game-domain/cow-game-model";
 
-const Speed = 1;
+const Speed = 2;
 
 export function createHorseRenderer(
   scene: Scene,
@@ -67,24 +67,26 @@ function createPlayerHorseRenderer(
 
   const horseRoot = createHorseRoot(scene);
 
-  assetsManager.loadSounds("gallop", 'skid').then(([gallopSound,skidSound]) => {
-    gallopSound.attachToMesh(horseRoot);
-    gallopSound.loop = true;
-    skidSound.attachToMesh(horseRoot);
+  assetsManager
+    .loadSounds("gallop", "skid")
+    .then(([gallopSound, skidSound]) => {
+      gallopSound.attachToMesh(horseRoot);
+      gallopSound.loop = true;
+      skidSound.attachToMesh(horseRoot);
 
-    const interval = setInterval(() => {
-      const isMoving = localVelocity.lengthSquared() > 0.000001;
-      const isPlaying = gallopSound.isPlaying;
-      if (isMoving && !isPlaying) {
-        gallopSound.play();
-      } else if (isPlaying && !isMoving) {
-        gallopSound.stop();
-        skidSound.updateOptions({})
-        skidSound.play()
-      }
-    }, 500);
-    disposers.push(() => clearInterval(interval));
-  });
+      const interval = setInterval(() => {
+        const isMoving = localVelocity.lengthSquared() > 0.000001;
+        const isPlaying = gallopSound.isPlaying;
+        if (isMoving && !isPlaying) {
+          gallopSound.play();
+        } else if (isPlaying && !isMoving) {
+          gallopSound.stop();
+          skidSound.updateOptions({});
+          skidSound.play();
+        }
+      }, 500);
+      disposers.push(() => clearInterval(interval));
+    });
 
   assetsManager.loadMesh("horse").then(({ loadedContainer }) => {
     const instantiated = loadedContainer.instantiateModelsToScene(
@@ -103,44 +105,44 @@ function createPlayerHorseRenderer(
     const idleAnimation = instantiated.animationGroups.find(
       (a) => a.name === "Idle"
     )!;
-    const walkingAnimation = instantiated.animationGroups.find(
-      (a) => a.name === "Walk"
+    const gallopAnimation = instantiated.animationGroups.find(
+      (a) => a.name === "Gallop"
     )!;
     if (!idleAnimation) {
       throw new AppError("Unable to find at least one animation group.", {
         idleAnimation,
-        walkingAnimation,
+        gallopAnimation: gallopAnimation,
       });
     }
-    [idleAnimation, walkingAnimation].forEach((a) => {
-      a.setWeightForAllAnimatables(0);
-      a.start(true);
-    });
+    idleAnimation.setWeightForAllAnimatables(0);
+    idleAnimation.start(true);
+    gallopAnimation.setWeightForAllAnimatables(0);
+    gallopAnimation.start(true, 2);
 
     // We want to transition smoothly between animations, so keep track of that
     // TODO: I think animationtarget has this built-in, look it up
     const targetWeights = {
       idleAnimation: 1,
-      walkingAnimation: 0,
+      gallopAnimation: 0,
     };
     const currentWeights = {
       idleAnimation: 1,
-      walkingAnimation: 0,
+      gallopAnimation: 0,
     };
 
     const weightsKeys: (keyof typeof currentWeights)[] = [
       "idleAnimation",
-      "walkingAnimation",
+      "gallopAnimation",
     ];
     const animationObserver = scene.onBeforeAnimationsObservable.add(() => {
       // Observe the current movement vector and reflect it in the target weights
-      // Note: walk never goes to a weight of zero. If we set it to 0, then it
+      // Note: gallop never goes to a weight of zero. If we set it to 0, then it
       //  stops animating, which means left and right can no longer sync to it.
       //  So we use a tiny non-zero value instead.
-      targetWeights.walkingAnimation =
+      targetWeights.gallopAnimation =
         localVelocity.lengthSquared() > 0.000001 ? 1 : 0.000001;
       targetWeights.idleAnimation =
-        targetWeights.walkingAnimation == 0.000001 ? 1 : 0;
+        targetWeights.gallopAnimation == 0.000001 ? 1 : 0;
 
       // Transition to the target weights
       for (const k of weightsKeys) {
@@ -158,8 +160,8 @@ function createPlayerHorseRenderer(
       }
       // Apply target weights
       idleAnimation.setWeightForAllAnimatables(currentWeights["idleAnimation"]);
-      walkingAnimation.setWeightForAllAnimatables(
-        currentWeights["walkingAnimation"]
+      gallopAnimation.setWeightForAllAnimatables(
+        currentWeights["gallopAnimation"]
       );
     });
     disposers.push(() =>
@@ -254,7 +256,7 @@ function createHorseRoot(scene: Scene) {
   horseRoot.position.set(0, height * 0.5, 0);
   horseRoot.isVisible = false;
   // Tag the horse to be picked up by the "tap" subsystem
-  setMetadata(horseRoot, { tappable: "player" });
+  // setMetadata(horseRoot, { tappable: "player" });
 
   horseRoot.physicsImpostor = new PhysicsImpostor(
     horseRoot,

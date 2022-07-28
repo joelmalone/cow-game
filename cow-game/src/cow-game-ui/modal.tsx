@@ -11,7 +11,7 @@ interface IProps {
 export function Modal({ hidden, children }: IProps) {
   return (
     <div class="modal" hidden={hidden}>
-      <span class="modal-close">&times;</span>
+      {/* <span class="modal-close">&times;</span> */}
       <div class="modal-content">{children}</div>
     </div>
   );

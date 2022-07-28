@@ -9,6 +9,7 @@ import {
 import { GameController } from "../cow-game-domain/cow-game-controller";
 import {
   calculateNpcDistanceToHome,
+  calculateScore,
   enumerateHabitableHouses,
 } from "../cow-game-domain/cow-game-logic";
 import { IModel, INpc, IPosition } from "../cow-game-domain/cow-game-model";
@@ -96,14 +97,17 @@ export function CowGameUi({
     })
     .toArray();
 
+  const score = calculateScore(model.housesWon.length, model.horsesSpawned);
+
   return (
     <>
       <div class="cow-game-ui">
-        <p>Houses won: {model.housesWon.length}</p>
+        <p>Score: {score}</p>
+        {/* <p>Houses won: {model.housesWon.length}</p>
         <p>Houses lost: {model.housesLost.length}</p>
         <p>Houses remaining: {model.housesRemaining}</p>
         <p>Horses spawned: {model.horsesSpawned}</p>
-        <button onClick={onStartNewGame}>Start new game</button>
+        <button onClick={onStartNewGame}>Start new game</button> */}
       </div>
       <div class="houses-panel">{houses}</div>
       <div class="bottom-panel">
@@ -111,6 +115,7 @@ export function CowGameUi({
       </div>
       <Modal hidden={model.gameState !== "gameOver"}>
         <h2>GAME OVA</h2>
+        <h3>Your score: {score}</h3>
         <p>
           You won {model.housesWon.length} {"🏡".repeat(model.housesWon.length)}{" "}
           and lost {model.housesLost.length}{" "}

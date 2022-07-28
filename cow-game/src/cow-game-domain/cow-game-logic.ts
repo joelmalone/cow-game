@@ -232,12 +232,30 @@ export function calculateNpcDistanceToHome(
   return d < 0 ? 0 : d > 1 ? 1 : d;
 }
 
-export function distBetweenPositions(
-  a: IPosition,
-  b: IPosition
-) {
+export function distBetweenPositions(a: IPosition, b: IPosition) {
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const d = Math.sqrt(dx * dx + dy * dy);
   return d;
+}
+
+/**
+ * Calculates the score from the houses won and horses spawned.
+ *
+ * Score formula can be visualised [here](https://www.desmos.com/calculator/4rsmbrnehe):
+ *
+ * Some key points:
+ * - I use a baseline of 100 horses to win a game
+ * - Winning 5 houses with 100 horses is
+ *   - the same score as winning 4 houses with 60 horses,
+ *   - or 3 houses with 20 horses
+ *   - but, winning with 2 or 1 houses can never match this score
+ * - Winning 10 houses with 100 horses is the same score as winning 5 houses with 0 horses
+ *
+ * @param housesWon
+ * @param horsesSpawned
+ * @returns
+ */
+export function calculateScore(housesWon: number, horsesSpawned: number) {
+  return Math.trunc((20 * housesWon) / (1 + horsesSpawned / 100));
 }

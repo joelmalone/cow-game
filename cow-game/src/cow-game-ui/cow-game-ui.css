@@ -1,7 +1,10 @@
 .cow-game-ui {
-  background-color: white;
-  padding: 1rem;
-  right: 0;
+  pointer-events: none;
+  padding: 0 1rem;
+  left: 0;
+  bottom: 0;
+  color: white;
+  background-color: #0008;
 }
 
 .bottom-panel {
@@ -17,9 +20,12 @@
 }
 
 .houses-panel {
-  top: 10rem;
+  pointer-events: none;
+  right: 0;
+  text-align: right;
 }
 
 .houses-panel button {
+  pointer-events: initial;
   display: block;
 }
