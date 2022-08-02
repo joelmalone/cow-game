@@ -1,8 +1,9 @@
+import { IGameParams } from "./cow-game-logic";
 import { IModel, INpc, IPosition } from "./cow-game-model";
 
 export interface INewGameStarted {
   type: "INewGameStarted";
-  npcLifespan: number;
+  gameParams: IGameParams;
   grid: IModel["grid"];
   playerSpawn: IPosition;
   npcsToSpawn: INpc[];

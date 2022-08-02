@@ -1,3 +1,5 @@
+import { IGameParams } from "./cow-game-logic";
+
 export interface IPosition {
   x: number;
   y: number;
@@ -9,7 +11,6 @@ export interface INpc {
   home: IPosition;
   route: IPosition[];
   spawnTime: number;
-  deathTime: number;
 }
 
 export enum TerrainTypes {
@@ -36,9 +37,16 @@ export interface ICell {
   terrainFacing: Facings;
 }
 
+export interface IScore {
+  housesWon: number;
+  horsesSpawned: number;
+  score: number;
+}
+
 export interface IModel {
-  gameState: 'playing' | 'gameOver',
-  npcLifespan: number;
+  gameState: "playing" | "gameOver";
+  gameParams: IGameParams;
+  score: IScore;
   grid: {
     width: number;
     height: number;
@@ -47,8 +55,6 @@ export interface IModel {
   playerSpawn: IPosition;
   npcsToSpawn: INpc[];
   npcs: INpc[];
-  housesRemaining: number;
-  horsesSpawned: number;
   housesLost: IPosition[];
   housesWon: IPosition[];
 }

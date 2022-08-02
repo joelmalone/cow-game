@@ -1,6 +1,7 @@
 import { AppError } from "../reusable/app-errors";
 import { assertUnreachable } from "../reusable/assertions";
 import type { Events } from "./cow-game-events";
+import { calculateScore } from "./cow-game-logic";
 import type { IModel } from "./cow-game-model";
 
 export function reduce(model: IModel, ev: Events): IModel {
@@ -8,13 +9,16 @@ export function reduce(model: IModel, ev: Events): IModel {
     case "INewGameStarted": {
       return {
         gameState: "playing",
-        npcLifespan: ev.npcLifespan,
+        gameParams: ev.gameParams,
+        score: {
+          housesWon: 0,
+          horsesSpawned: 0,
+          score: 0,
+        },
         grid: ev.grid,
         playerSpawn: ev.playerSpawn,
         npcsToSpawn: ev.npcsToSpawn,
         npcs: [],
-        housesRemaining: ev.npcsToSpawn.length,
-        horsesSpawned: 0,
         housesLost: [],
         housesWon: [],
       };
@@ -34,9 +38,19 @@ export function reduce(model: IModel, ev: Events): IModel {
     }
 
     case "IHorseSpawned": {
+      const horsesSpawned = model.score.horsesSpawned + 1;
       return {
         ...model,
-        horsesSpawned: model.horsesSpawned + 1,
+        score: {
+          ...model.score,
+          horsesSpawned,
+          score: calculateScore(
+            model.gameParams.pointsPerHouse,
+            model.gameParams.pointsPerHorse,
+            model.score.housesWon,
+            horsesSpawned
+          ),
+        },
       };
     }
 
@@ -44,17 +58,26 @@ export function reduce(model: IModel, ev: Events): IModel {
       const { npc } = ev;
       return {
         ...model,
-        housesRemaining: model.housesRemaining - 1,
         housesLost: [...model.housesLost, npc.home],
       };
     }
 
     case "INpcExploded": {
       const { npc } = ev;
+      const housesWon = [...model.housesWon, npc.home];
       return {
         ...model,
-        housesRemaining: model.housesRemaining - 1,
-        housesWon: [...model.housesWon, npc.home],
+        score: {
+          ...model.score,
+          housesWon: housesWon.length,
+          score: calculateScore(
+            model.gameParams.pointsPerHouse,
+            model.gameParams.pointsPerHorse,
+            housesWon.length,
+            model.score.horsesSpawned
+          ),
+        },
+        housesWon,
       };
     }
 

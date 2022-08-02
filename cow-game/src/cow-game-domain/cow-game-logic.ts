@@ -10,11 +10,13 @@ import {
   TerrainTypes,
 } from "./cow-game-model";
 
-export const GameParams = {
-  npcsToSpawn: 5,
-  npcLifespan: 60,
-  npcSpawnInterval: 10,
-};
+export interface IGameParams {
+  pointsPerHouse: number;
+  pointsPerHorse: number;
+  npcsToSpawn: number;
+  npcLifespan: number;
+  npcSpawnInterval: number;
+}
 
 export function createGrid(): IModel["grid"] {
   const width = 7;
@@ -85,20 +87,20 @@ export function* enumerateHabitableHouses(grid: IModel["grid"]) {
 export function* generateNpcs(
   grid: IModel["grid"],
   homes: IPosition[],
-  spawnpoints: IPosition[]
+  spawnpoints: IPosition[],
+  npcSpawnInterval: number
 ): IterableIterator<INpc> {
   for (var i = 0; i < homes.length; i++) {
     const spawn = spawnpoints[i % spawnpoints.length];
     const home = homes[i];
     const route = findPath(grid, spawn, home);
-    const spawnTime = (i + 1) * GameParams.npcSpawnInterval;
+    const spawnTime = (i + 1) * npcSpawnInterval;
     yield {
       id: i,
       home,
       spawn,
       route,
       spawnTime,
-      deathTime: spawnTime + GameParams.npcLifespan,
     };
   }
 }
@@ -241,21 +243,12 @@ export function distBetweenPositions(a: IPosition, b: IPosition) {
 
 /**
  * Calculates the score from the houses won and horses spawned.
- *
- * Score formula can be visualised [here](https://www.desmos.com/calculator/4rsmbrnehe):
- *
- * Some key points:
- * - I use a baseline of 100 horses to win a game
- * - Winning 5 houses with 100 horses is
- *   - the same score as winning 4 houses with 60 horses,
- *   - or 3 houses with 20 horses
- *   - but, winning with 2 or 1 houses can never match this score
- * - Winning 10 houses with 100 horses is the same score as winning 5 houses with 0 horses
- *
- * @param housesWon
- * @param horsesSpawned
- * @returns
  */
-export function calculateScore(housesWon: number, horsesSpawned: number) {
-  return Math.trunc((20 * housesWon) / (1 + horsesSpawned / 100));
+export function calculateScore(
+  pointsPerHouse: number,
+  pointsPerHorse: number,
+  housesWon: number,
+  horsesSpawned: number
+) {
+  return pointsPerHouse * housesWon + pointsPerHorse * horsesSpawned;
 }

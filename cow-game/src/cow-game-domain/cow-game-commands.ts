@@ -7,8 +7,8 @@ import {
   createGrid,
   enumerateHabitableHouses,
   findPath,
-  GameParams,
   generateNpcs,
+  IGameParams,
 } from "./cow-game-logic";
 import type { IModel, INpc, IPosition, Tappable } from "./cow-game-model";
 
@@ -17,11 +17,20 @@ export type Command = (
   emitEvent: (ev: Events) => void
 ) => void;
 
+const DefaultGameParams:IGameParams = {
+  pointsPerHouse: 20,
+  pointsPerHorse: -1,
+  npcsToSpawn: 5,
+  npcLifespan: 60,
+  npcSpawnInterval: 10,
+};
+
 export function startNewGame(seed: string): Command {
+  const gameParams = {...DefaultGameParams};
   const grid = createGrid();
 
   const unusedHouses = Array.from(enumerateHabitableHouses(grid));
-  if (unusedHouses.length < GameParams.npcsToSpawn) {
+  if (unusedHouses.length < DefaultGameParams.npcsToSpawn) {
     throw new AppError("There are less houses on the grid than NPCs to spawn.");
   }
   shuffleArrayInPlace(unusedHouses);
@@ -32,14 +41,14 @@ export function startNewGame(seed: string): Command {
     { x: -1, y: 3 },
   ];
 
-  const npcsToSpawn = iter(generateNpcs(grid, unusedHouses, npcSpawnpoints))
-    .take(GameParams.npcsToSpawn)
+  const npcsToSpawn = iter(generateNpcs(grid, unusedHouses, npcSpawnpoints, gameParams.npcSpawnInterval))
+    .take(gameParams.npcsToSpawn)
     .toArray();
 
   return ({ model }, emitEvent) => {
     emitEvent({
       type: "INewGameStarted",
-      npcLifespan: 60,
+      gameParams,
       grid,
       playerSpawn: { x: 3, y: 3 },
       npcsToSpawn,

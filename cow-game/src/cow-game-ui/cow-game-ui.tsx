@@ -97,12 +97,10 @@ export function CowGameUi({
     })
     .toArray();
 
-  const score = calculateScore(model.housesWon.length, model.horsesSpawned);
-
   return (
     <>
       <div class="cow-game-ui">
-        <p>Score: {score}</p>
+        <p>Score: {model.score.score}</p>
         {/* <p>Houses won: {model.housesWon.length}</p>
         <p>Houses lost: {model.housesLost.length}</p>
         <p>Houses remaining: {model.housesRemaining}</p>
@@ -115,17 +113,34 @@ export function CowGameUi({
       </div>
       <Modal hidden={model.gameState !== "gameOver"}>
         <h2>GAME OVA</h2>
-        <h3>Your score: {score}</h3>
+        <table>
+          <tr>
+            <td>
+              {model.score.housesWon}🏡 x {model.gameParams.pointsPerHouse}
+            </td>
+            <td>+</td>
+            <td>{model.score.housesWon * model.gameParams.pointsPerHouse}</td>
+          </tr>
+          <tr>
+            <td>
+              {model.score.horsesSpawned}🐴 x {model.gameParams.pointsPerHorse}
+            </td>
+            <td>-</td>
+            <td>
+              {model.score.horsesSpawned * -model.gameParams.pointsPerHorse}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <em>Your score</em>
+            </td>
+            <td>=</td>
+            <td>{model.score.score}</td>
+          </tr>
+        </table>
         <p>
-          You won {model.housesWon.length} {"🏡".repeat(model.housesWon.length)}{" "}
-          and lost {model.housesLost.length}{" "}
-          {"🏡".repeat(model.housesLost.length)} houses.
+          <button onClick={onStartNewGame}>Start new game</button>
         </p>
-        <p>
-          You spawned {model.horsesSpawned} {"🐴".repeat(model.horsesSpawned)}{" "}
-          horses.
-        </p>
-        <button onClick={onStartNewGame}>Start new game</button>
       </Modal>
     </>
   );

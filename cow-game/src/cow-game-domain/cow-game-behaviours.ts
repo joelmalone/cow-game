@@ -54,9 +54,19 @@ function startSpawnTimers(
 export function startGameOverProcess(
   gameController: GameController
 ): () => void {
+  var housesRemaining = 0;
   const unsubscribe = gameController.subscribeEvents((ev) => {
-    if (ev.model.gameState === "playing" && ev.model.housesRemaining === 0) {
-      gameController.enqueueCommand(endGame());
+    switch (ev.event.type) {
+      case "INewGameStarted":
+        housesRemaining = ev.event.npcsToSpawn.length;
+        break;
+      case "INpcArrivedAtHome":
+      case "INpcExploded":
+        housesRemaining--;
+        if (housesRemaining === 0) {
+          gameController.enqueueCommand(endGame());
+        }
+        break;
     }
   });
 
